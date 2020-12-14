@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'binflux-repository'
+            url = 'http://repo.levenproxy.eu/releases'
+            credentials {
+                username = System.getenv('REPO_USER')
+                password = System.getenv('REPO_TOKEN')
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+group 'eu.binflux'
+version '1.1.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
