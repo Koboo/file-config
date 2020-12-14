@@ -6,7 +6,7 @@ plugins {
 publishing {
     repositories {
         maven {
-            name = 'binflux-repository'
+            name = 'binflux'
             url = 'http://repo.levenproxy.eu/releases'
             credentials {
                 username = System.getenv('REPO_USER')
