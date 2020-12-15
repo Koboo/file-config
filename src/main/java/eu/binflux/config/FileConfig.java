@@ -92,7 +92,7 @@ public class FileConfig {
         if (!file.exists()) {
             try {
                 File parents = file.getParentFile();
-                if (parents != null)
+                if (parents != null && !parents.exists())
                     parents.mkdirs();
                 file.createNewFile();
             } catch (IOException e) {
