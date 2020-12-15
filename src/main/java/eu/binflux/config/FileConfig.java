@@ -91,6 +91,9 @@ public class FileConfig {
         File file = new File(filePath);
         if (!file.exists()) {
             try {
+                File parents = file.getParentFile();
+                if (parents != null)
+                    parents.mkdirs();
                 file.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -302,7 +305,7 @@ public class FileConfig {
                 if (!value.contains(object))
                     list.remove(object);
             }
-            if(comment != null)
+            if (comment != null)
                 writer.println("#" + comment);
             writer.println(key + SEPARATOR);
             list.forEach(line -> writer.println(LIST_SPLITTER + line));
