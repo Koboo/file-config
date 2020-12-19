@@ -27,36 +27,36 @@ public abstract class FileDirectory<T extends ConfigObject> {
         if (directory.listFiles() != null)
             for (File file : directory.listFiles()) {
                 FileConfig fileConfig = FileConfig.newConfig(file);
-                T configObject = mapFromConfig(fileConfig);
+                T configObject = mapFromFileConfig(fileConfig);
                 objectCache.put(configObject.getFileIdentifier(), configObject);
             }
     }
 
-    public boolean existsFile(String entryId) {
-        return this.objectCache.containsKey(entryId);
+    public boolean existsObject(String objectId) {
+        return this.objectCache.containsKey(objectId);
     }
 
-    public void saveFile(T configObject) {
+    public void saveObject(T configObject) {
         this.objectCache.put(configObject.getFileIdentifier(), configObject);
         this.executor.execute(() -> {
             FileConfig fileConfig = FileConfig.newConfig(getFileObject(configObject));
-            mapToConfig(configObject, fileConfig);
+            saveInFileConfig(configObject, fileConfig);
         });
     }
 
-    public void removeFile(String objectId) {
+    public void removeObject(String objectId) {
         this.objectCache.remove(objectId);
         this.executor.execute(() -> {
             for (File file : Objects.requireNonNull(new File(fileDirectory).listFiles())) {
                 FileConfig fileConfig = FileConfig.newConfig(file);
-                T configObject = mapFromConfig(fileConfig);
+                T configObject = mapFromFileConfig(fileConfig);
                 if (configObject.getFileIdentifier().equals(objectId))
                     fileConfig.delete();
             }
         });
     }
 
-    public T getFromFile(String objectId) {
+    public T getObject(String objectId) {
         return this.objectCache.get(objectId);
     }
 
@@ -68,7 +68,7 @@ public abstract class FileDirectory<T extends ConfigObject> {
         return new File(fileDirectory, configObject.getFileIdentifier() + "." + fileExtension);
     }
 
-    public abstract T mapFromConfig(FileConfig fileConfig);
-    public abstract FileConfig mapToConfig(T configObject, FileConfig fileConfig);
+    public abstract T mapFromFileConfig(FileConfig fileConfig);
+    public abstract FileConfig saveInFileConfig(T configObject, FileConfig fileConfig);
 
 }
