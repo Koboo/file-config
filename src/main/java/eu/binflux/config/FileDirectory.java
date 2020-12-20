@@ -24,12 +24,16 @@ public abstract class FileDirectory<T extends ConfigObject> {
         Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdownNow));
 
         File directory = new File(fileDirectory);
-        if (directory.listFiles() != null)
-            for (File file : directory.listFiles()) {
-                FileConfig fileConfig = FileConfig.newConfig(file);
-                T configObject = mapFromFileConfig(fileConfig);
-                objectCache.put(configObject.getFileIdentifier(), configObject);
-            }
+        if(directory.exists()) {
+            if (directory.listFiles() != null)
+                for (File file : directory.listFiles()) {
+                    FileConfig fileConfig = FileConfig.newConfig(file);
+                    T configObject = mapFromFileConfig(fileConfig);
+                    objectCache.put(configObject.getFileIdentifier(), configObject);
+                }
+        } else {
+            directory.mkdirs();
+        }
     }
 
     public boolean existsObject(String objectId) {
@@ -39,7 +43,7 @@ public abstract class FileDirectory<T extends ConfigObject> {
     public void saveObject(T configObject) {
         this.objectCache.put(configObject.getFileIdentifier(), configObject);
         this.executor.execute(() -> {
-            FileConfig fileConfig = FileConfig.newConfig(getFileObject(configObject));
+            FileConfig fileConfig = FileConfig.newConfig(getFileObject(configObject.getFileIdentifier()));
             saveInFileConfig(configObject, fileConfig);
         });
     }
@@ -57,15 +61,21 @@ public abstract class FileDirectory<T extends ConfigObject> {
     }
 
     public T getObject(String objectId) {
-        return this.objectCache.get(objectId);
+        T object = this.objectCache.getOrDefault(objectId, null);
+        if(object == null) {
+            File file = getFileObject(objectId);
+            if(file.exists())
+                object = mapFromFileConfig(FileConfig.newConfig(file));
+        }
+        return object;
     }
 
     public Map<String, T> getObjectMap() {
         return this.objectCache;
     }
 
-    private File getFileObject(ConfigObject configObject) {
-        return new File(fileDirectory, configObject.getFileIdentifier() + "." + fileExtension);
+    private File getFileObject(String identifier) {
+        return new File(fileDirectory, identifier + "." + fileExtension);
     }
 
     public abstract T mapFromFileConfig(FileConfig fileConfig);
