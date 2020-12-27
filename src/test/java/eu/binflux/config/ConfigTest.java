@@ -20,6 +20,7 @@ public class ConfigTest {
             dConfig.init("Gotten", "sh");
             dConfig.init("Lorem ipsum", "dolor sit amet");
         });
+        System.out.println(config.getFileName());
     }
 
     @AfterClass

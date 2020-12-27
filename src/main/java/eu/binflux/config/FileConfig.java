@@ -107,6 +107,14 @@ public class FileConfig {
 
     /*     GETTER METHODS     */
 
+    public File getFile() {
+        return new File(filePath);
+    }
+
+    public Object get(String key) {
+        return getContentValue(key);
+    }
+
     public String getString(String key) {
         return getContentValue(key);
     }
@@ -136,6 +144,16 @@ public class FileConfig {
     }
 
     /*     GETTER DEFAULT METHODS     */
+
+    public Object getOr(String key, Object defaultO) {
+        try {
+            Object value = get(key);
+            return value == null ? defaultO : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultO;
+    }
 
     public String getStringOr(String key, String defaultS) {
         try {
@@ -208,6 +226,10 @@ public class FileConfig {
     }
 
     /*     NON-STATIC FUNCTION METHODS     */
+
+    public String getFileName() {
+        return new File(this.filePath).getName();
+    }
 
     public <T> void init(String key, T value) {
         init(key, value, null);
