@@ -7,12 +7,38 @@ import eu.binflux.config.data.Filter;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import sun.management.HotspotMemoryMBean;
 
 import java.util.*;
 
 public class DataTest {
 
     static DataDirectory<User> userDataDirectory;
+    static DataDirectory<UserHome> userHomeDataDirectory;
+    static String[] usernames = new String[]{
+            "Koboo",
+            "Rizon",
+            "Scope",
+            "Pawii",
+            "HeyHo",
+            "Elia",
+            "John",
+            "Thomas",
+            "Lukas",
+            "Tom",
+            "Vincent",
+            "Jan",
+            "Justin",
+            "Daniela",
+            "Marie",
+            "Anna-Lena",
+            "Hans Peter",
+            "Execute",
+            "Hopsi",
+            "Kari",
+            "Finn",
+            "Nutzer",
+    };
 
     @BeforeClass
     public static void before() {
@@ -33,7 +59,28 @@ public class DataTest {
                 return fileConfig;
             }
         };
+
+        userHomeDataDirectory = new DataDirectory<UserHome>("userhomes", "home") {
+            @Override
+            public UserHome mapFromFileConfig(FileConfig fileConfig) {
+                String homeId = fileConfig.getString("homeId");
+                String userId = fileConfig.getString("userId");
+                String homeName = fileConfig.getString("homeName");
+                String location = fileConfig.getString("location");
+                return new UserHome(homeId, userId, homeName, location);
+            }
+
+            @Override
+            public FileConfig saveInFileConfig(UserHome configObject, FileConfig fileConfig) {
+                fileConfig.set("homeId", configObject.getHomeId());
+                fileConfig.set("userId", configObject.getUserId());
+                fileConfig.set("homeName", configObject.getHomeName());
+                fileConfig.set("location", configObject.getLocation());
+                return fileConfig;
+            }
+        };
     }
+
 
     @AfterClass
     public static void after() {
@@ -44,44 +91,36 @@ public class DataTest {
     public void testA() {
         System.out.println("Test A data-directory");
         final long start = System.currentTimeMillis();
-        String[] usernames = new String[]{
-                "Koboo",
-                "Rizon",
-                "Scope",
-                "Pawii",
-                "HeyHo",
-                "Elia",
-                "John",
-                "Thomas",
-                "Lukas",
-                "Tom",
-                "Vincent",
-                "Jan",
-                "Justin",
-                "Daniela",
-                "Marie",
-                "Anna-Lena",
-                "Hans Peter",
-                "Execute",
-                "Hopsi",
-                "Kari",
-                "Finn",
-                "Nutzer",
-        };
         for (String username : usernames) {
             String password = getPassword() + "";
-            if (!userDataDirectory.filterEquals(Filter.equals("username", username))) {
+            if (!userDataDirectory.contains(Filter.equals("username", username))) {
                 String userId = UUID.randomUUID().toString();
-                if (!userDataDirectory.filterEquals(Filter.equals("userId", userId))) {
-                    userDataDirectory.saveIdentifier(new User(userId, username, password));
+                if (!userDataDirectory.contains(Filter.equals("userId", userId))) {
+                    userDataDirectory.save(new User(userId, username, password));
                 }
-            } else {
-                User user = userDataDirectory.findEquals(Filter.equals("username", username));
-                List<User> userList = userDataDirectory.collectEquals(Filter.equals("username", username));
-                System.out.println("Exists: " + user.getUserId() + "/" + user.getUserId());
             }
         }
         System.out.println("Took: " + ((System.currentTimeMillis() - start)) + "ms");
+    }
+
+    @Test
+    public void testB() {
+        String homeName = "base";
+        String location = "1,2,3,4";
+
+        String playerName = "Koboo"; //args[0]
+        Filter.EqualsFilter filter = Filter.equals("username", playerName);
+
+
+
+        if(userDataDirectory.contains(filter)) {
+            User user = userDataDirectory.find(filter);
+            userDataDirectory.save(user);
+        }
+
+        if(userDataDirectory.contains(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"))) {
+            User user = userDataDirectory.find(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"));
+        }
     }
 
     public static int getPassword() {
@@ -118,6 +157,42 @@ public class DataTest {
         @Override
         public String getFileIdentifier() {
             return getUserId();
+        }
+    }
+
+    public static class UserHome implements DataFile {
+
+        String homeId;
+        String userId;
+        String homeName;
+        String location;
+
+        public UserHome(String homeId, String userId, String homeName, String location) {
+            this.homeId = homeId;
+            this.userId = userId;
+            this.homeName = homeName;
+            this.location = location;
+        }
+
+        public String getHomeId() {
+            return homeId;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public String getHomeName() {
+            return homeName;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        @Override
+        public String getFileIdentifier() {
+            return getHomeId();
         }
     }
 

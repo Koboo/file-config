@@ -80,7 +80,7 @@ public abstract class DataDirectory<T extends DataFile> {
 
     private List<FileConfig> listFileConfig() {
         List<FileConfig> fileConfigList = listFiles()
-                .stream()
+                .parallelStream()
                 .map(this::getIdentifier)
                 .map(this::getFileConfig)
                 .collect(Collectors.toList());
@@ -101,11 +101,8 @@ public abstract class DataDirectory<T extends DataFile> {
         return object;
     }
 
-    public boolean existsIdentifier(String identifier) {
-        return this.dataFileCache.containsKey(identifier);
-    }
 
-    public void saveIdentifier(T dataFile) {
+    public void save(T dataFile) {
         this.dataFileCache.put(dataFile.getFileIdentifier(), dataFile);
         register(() -> {
             FileConfig fileConfig = saveInFileConfig(dataFile, getFileConfig(dataFile.getFileIdentifier()));
@@ -113,7 +110,7 @@ public abstract class DataDirectory<T extends DataFile> {
         });
     }
 
-    public void deleteIdentifier(String identifier) {
+    public void delete(String identifier) {
         register(() -> {
             FileConfig fileConfig = getFileConfig(identifier);
             T configObject = doMapping(fileConfig);
@@ -124,15 +121,11 @@ public abstract class DataDirectory<T extends DataFile> {
         this.fileConfigCache.remove(identifier);
     }
 
-    public T findIdentifier(String identifier) {
-        return doMapping(getFileConfig(identifier));
-    }
-
     public Map<String, T> getCachedMap() {
         return this.dataFileCache;
     }
 
-    public boolean filterExists(Filter.ExistsFilter filter) {
+    public boolean contains(Filter.ExistsFilter filter) {
         List<FileConfig> fileConfigList = listFileConfig();
         if (!fileConfigList.isEmpty()) {
             return fileConfigList
@@ -142,7 +135,7 @@ public abstract class DataDirectory<T extends DataFile> {
         return false;
     }
 
-    public boolean filterEquals(Filter.EqualsFilter filter) {
+    public boolean contains(Filter.EqualsFilter filter) {
         List<FileConfig> fileConfigList = listFileConfig();
         if (!fileConfigList.isEmpty()) {
             return fileConfigList
@@ -152,16 +145,39 @@ public abstract class DataDirectory<T extends DataFile> {
         return false;
     }
 
-    public T findEquals(Filter.EqualsFilter filter) {
-        return listFileConfig()
-                .stream()
-                .filter(config -> config.contains(filter.getKey()) && config.get(filter.getKey()).equals(filter.getValue()))
-                .map(this::doMapping)
-                .findAny()
-                .orElse(null);
+    public boolean contains(Filter.ExistsFilter... filters) {
+        List<FileConfig> fileConfigList = listFileConfig();
+        if (!fileConfigList.isEmpty()) {
+            return fileConfigList
+                    .stream()
+                    .anyMatch(config -> {
+                        for (Filter.ExistsFilter filter : filters) {
+                            if (!config.contains(filter.getKey()))
+                                return false;
+                        }
+                        return true;
+                    });
+        }
+        return false;
     }
 
-    public T findExists(Filter.ExistsFilter filter) {
+    public boolean contains(Filter.EqualsFilter... filters) {
+        List<FileConfig> fileConfigList = listFileConfig();
+        if (!fileConfigList.isEmpty()) {
+            return fileConfigList
+                    .stream()
+                    .anyMatch(config -> {
+                        for (Filter.EqualsFilter filter : filters) {
+                            if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                                return false;
+                        }
+                        return true;
+                    });
+        }
+        return false;
+    }
+
+    public T find(Filter.ExistsFilter filter) {
         return listFileConfig()
                 .stream()
                 .filter(config -> config.contains(filter.getKey()))
@@ -170,7 +186,55 @@ public abstract class DataDirectory<T extends DataFile> {
                 .orElse(null);
     }
 
-    public List<T> collectEquals(Filter.EqualsFilter filter) {
+    public T find(Filter.EqualsFilter filter) {
+        return listFileConfig()
+                .stream()
+                .filter(config -> config.contains(filter.getKey()) && config.get(filter.getKey()).equals(filter.getValue()))
+                .map(this::doMapping)
+                .findAny()
+                .orElse(null);
+    }
+
+    public T find(Filter.ExistsFilter... filters) {
+        return listFileConfig()
+                .stream()
+                .filter(config -> {
+                    for (Filter.ExistsFilter filter : filters) {
+                        if (!config.contains(filter.getKey()))
+                            return false;
+                    }
+                    return true;
+                })
+                .map(this::doMapping)
+                .findAny()
+                .orElse(null);
+    }
+
+    public T find(Filter.EqualsFilter... filters) {
+        return listFileConfig()
+                .stream()
+                .filter(config -> {
+                    for (Filter.EqualsFilter filter : filters) {
+                        if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                            return false;
+                    }
+                    return true;
+                })
+                .map(this::doMapping)
+                .findAny()
+                .orElse(null);
+    }
+
+
+    public List<T> collect(Filter.ExistsFilter filter) {
+        return listFileConfig()
+                .stream()
+                .filter(config -> config.contains(filter.getKey()))
+                .map(this::doMapping)
+                .collect(Collectors.toList());
+    }
+
+    public List<T> collect(Filter.EqualsFilter filter) {
         return listFileConfig()
                 .stream()
                 .filter(config -> config.contains(filter.getKey()) && config.get(filter.getKey()).equals(filter.getValue()))
@@ -178,10 +242,30 @@ public abstract class DataDirectory<T extends DataFile> {
                 .collect(Collectors.toList());
     }
 
-    public List<T> collectExists(Filter.ExistsFilter filter) {
+    public List<T> collect(Filter.ExistsFilter... filters) {
         return listFileConfig()
                 .stream()
-                .filter(config -> config.contains(filter.getKey()))
+                .filter(config -> {
+                    for (Filter.ExistsFilter filter : filters) {
+                        if (!config.contains(filter.getKey()))
+                            return false;
+                    }
+                    return true;
+                })
+                .map(this::doMapping)
+                .collect(Collectors.toList());
+    }
+
+    public List<T> collect(Filter.EqualsFilter... filters) {
+        return listFileConfig()
+                .stream()
+                .filter(config -> {
+                    for (Filter.EqualsFilter filter : filters) {
+                        if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                            return false;
+                    }
+                    return true;
+                })
                 .map(this::doMapping)
                 .collect(Collectors.toList());
     }
