@@ -7,7 +7,6 @@ import eu.binflux.config.data.Filter;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import sun.management.HotspotMemoryMBean;
 
 import java.util.*;
 
@@ -93,9 +92,9 @@ public class DataTest {
         final long start = System.currentTimeMillis();
         for (String username : usernames) {
             String password = getPassword() + "";
-            if (!userDataDirectory.contains(Filter.equals("username", username))) {
+            if (!userDataDirectory.existsAny(Filter.equals("username", username))) {
                 String userId = UUID.randomUUID().toString();
-                if (!userDataDirectory.contains(Filter.equals("userId", userId))) {
+                if (!userDataDirectory.existsAny(Filter.equals("userId", userId))) {
                     userDataDirectory.save(new User(userId, username, password));
                 }
             }
@@ -113,13 +112,13 @@ public class DataTest {
 
 
 
-        if(userDataDirectory.contains(filter)) {
-            User user = userDataDirectory.find(filter);
+        if(userDataDirectory.existsAny(filter)) {
+            User user = userDataDirectory.findAny(filter);
             userDataDirectory.save(user);
         }
 
-        if(userDataDirectory.contains(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"))) {
-            User user = userDataDirectory.find(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"));
+        if(userDataDirectory.existsAny(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"))) {
+            User user = userDataDirectory.findAny(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"));
         }
     }
 
