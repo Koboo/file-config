@@ -95,7 +95,7 @@ public abstract class DataDirectory<T extends DataFile> {
         String identifier = getIdentifier(fileConfig.getFile());
         T object = this.dataFileCache.getOrDefault(identifier, null);
         if (object == null && getFile(identifier).exists()) {
-            object = mapFromFileConfig(getFileConfig(identifier));
+            object = mapFromFileConfig(fileConfig);
             dataFileCache.put(identifier, object);
         }
         return object;
@@ -121,18 +121,18 @@ public abstract class DataDirectory<T extends DataFile> {
         this.fileConfigCache.remove(identifier);
     }
 
-    public Map<String, T> getMap() {
+    public Map<String, T> getCachedMap() {
         return this.dataFileCache;
     }
 
-    public boolean containsAny(Filter.ExistsFilter... filters) {
+    public boolean existsAny(Filter.ExistsFilter... filters) {
         List<FileConfig> fileConfigList = listFileConfig();
         if (!fileConfigList.isEmpty()) {
             return fileConfigList
                     .stream()
                     .anyMatch(config -> {
                         for (Filter.ExistsFilter filter : filters) {
-                            if (!config.containsKey(filter.getKey()))
+                            if (!config.contains(filter.getKey()))
                                 return false;
                         }
                         return true;
@@ -141,14 +141,14 @@ public abstract class DataDirectory<T extends DataFile> {
         return false;
     }
 
-    public boolean containsAny(Filter.EqualsFilter... filters) {
+    public boolean existsAny(Filter.EqualsFilter... filters) {
         List<FileConfig> fileConfigList = listFileConfig();
         if (!fileConfigList.isEmpty()) {
             return fileConfigList
                     .stream()
                     .anyMatch(config -> {
                         for (Filter.EqualsFilter filter : filters) {
-                            if (!config.containsKey(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                            if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
                                 return false;
                         }
                         return true;
@@ -162,7 +162,7 @@ public abstract class DataDirectory<T extends DataFile> {
                 .stream()
                 .filter(config -> {
                     for (Filter.ExistsFilter filter : filters) {
-                        if (!config.containsKey(filter.getKey()))
+                        if (!config.contains(filter.getKey()))
                             return false;
                     }
                     return true;
@@ -177,7 +177,7 @@ public abstract class DataDirectory<T extends DataFile> {
                 .stream()
                 .filter(config -> {
                     for (Filter.EqualsFilter filter : filters) {
-                        if (!config.containsKey(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                        if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
                             return false;
                     }
                     return true;
@@ -192,7 +192,7 @@ public abstract class DataDirectory<T extends DataFile> {
                 .stream()
                 .filter(config -> {
                     for (Filter.ExistsFilter filter : filters) {
-                        if (!config.containsKey(filter.getKey()))
+                        if (!config.contains(filter.getKey()))
                             return false;
                     }
                     return true;
@@ -206,7 +206,7 @@ public abstract class DataDirectory<T extends DataFile> {
                 .stream()
                 .filter(config -> {
                     for (Filter.EqualsFilter filter : filters) {
-                        if (!config.containsKey(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                        if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
                             return false;
                     }
                     return true;

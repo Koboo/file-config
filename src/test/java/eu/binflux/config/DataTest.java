@@ -92,9 +92,9 @@ public class DataTest {
         final long start = System.currentTimeMillis();
         for (String username : usernames) {
             String password = getPassword() + "";
-            if (!userDataDirectory.containsAny(Filter.equals("username", username))) {
+            if (!userDataDirectory.existsAny(Filter.equals("username", username))) {
                 String userId = UUID.randomUUID().toString();
-                if (!userDataDirectory.containsAny(Filter.equals("userId", userId))) {
+                if (!userDataDirectory.existsAny(Filter.equals("userId", userId))) {
                     userDataDirectory.save(new User(userId, username, password));
                 }
             }
@@ -112,12 +112,12 @@ public class DataTest {
 
 
 
-        if(userDataDirectory.containsAny(filter)) {
+        if(userDataDirectory.existsAny(filter)) {
             User user = userDataDirectory.findAny(filter);
             userDataDirectory.save(user);
         }
 
-        if(userDataDirectory.containsAny(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"))) {
+        if(userDataDirectory.existsAny(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"))) {
             User user = userDataDirectory.findAny(Filter.equals("username", "Koboo"), Filter.equals("rank", "Admin"));
         }
     }
