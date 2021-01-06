@@ -1,9 +1,11 @@
 package eu.binflux.config;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @SuppressWarnings({"all"})
@@ -143,6 +145,10 @@ public class FileConfig {
         return Boolean.parseBoolean(getContentValue(key));
     }
 
+    public byte[] getByteArray(String key) {
+        return ((String) getContentValue(key)).getBytes();
+    }
+
     /*     GETTER DEFAULT METHODS     */
 
     public Object getOr(String key, Object defaultO) {
@@ -225,7 +231,21 @@ public class FileConfig {
         return defaultB;
     }
 
+    public byte[] getByteArrayOr(String key, byte[] defaultB) {
+        try {
+            byte[] value = getByteArray(key);
+            return value == null ? defaultB : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultB;
+    }
+
     /*     NON-STATIC FUNCTION METHODS     */
+
+    public int getLines() {
+        return fileContent().size();
+    }
 
     public String getFileName() {
         return new File(this.filePath).getName();
@@ -244,8 +264,17 @@ public class FileConfig {
         delete(this.filePath);
     }
 
+    @Deprecated
     public boolean contains(String key) {
+        return containsKey(key);
+    }
+
+    public boolean containsKey(String key) {
         return fileContent().parallelStream().anyMatch(line -> line.startsWith(key));
+    }
+
+    public boolean containsValue(String value) {
+        return fileContent().parallelStream().anyMatch(line -> line.endsWith(value));
     }
 
     public <T> void set(String key, T value) {
@@ -254,8 +283,11 @@ public class FileConfig {
 
     public <T> void set(String key, T value, String comment) {
         try {
-            String keyValueString = key + SEPARATOR + value;
-            ArrayList<String> contentList = new ArrayList<>();
+            String valueSet = value.toString();
+            if(value instanceof byte[])
+                valueSet = new String((byte[]) value);
+            String keyValueString = key + SEPARATOR + valueSet;
+            List<String> contentList = new ArrayList<>();
             String lastContent = null;
             for (String contentString : fileContent()) {
                 if (contentString.startsWith(key + SEPARATOR) && !contentString.equals(keyValueString)) {
@@ -281,8 +313,26 @@ public class FileConfig {
         }
     }
 
+    public void unset(String key) {
+        try {
+            String keyString = key + SEPARATOR;
+            List<String> contentList = new ArrayList<>();
+            String lastContent = null;
+            for (String contentString : fileContent()) {
+                if (!contentString.startsWith(keyString)) {
+                    contentList.add(contentString);
+                }
+            }
+            PrintWriter writer = new PrintWriter(filePath, "UTF-8");
+            contentList.forEach(writer::println);
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public <T> List<T> getList(String key) {
-        ArrayList<T> arrayList = new ArrayList<>();
+        List<T> arrayList = new ArrayList<>();
         boolean readList = false;
         for (String contentLines : fileContent()) {
             if (readList && contentLines.startsWith(LIST_SPLITTER))
@@ -301,7 +351,7 @@ public class FileConfig {
 
     public <T extends List> void setList(String key, T value, String comment) {
         try {
-            ArrayList<String> contentList = new ArrayList<>();
+            List<String> contentList = new ArrayList<>();
             boolean readList = false;
             String lastContent = null;
             for (String contentString : fileContent()) {
@@ -339,6 +389,19 @@ public class FileConfig {
         }
     }
 
+    public Map<String, Object> asKeyValue() {
+        Map<String, Object> valueMap = new HashMap<>();
+        for(String fileContent : fileContent()) {
+            String[] contentSplit = fileContent.split(SEPARATOR);
+            if(contentSplit.length == 1) {
+                String key = contentSplit[0];
+                String value = contentSplit[1];
+                valueMap.put(key, value);
+            }
+        }
+        return valueMap;
+    }
+
     private <T> T getContentValue(String key) {
         for (String contentLines : fileContent()) {
             if (contentLines.startsWith(key)) {
@@ -348,15 +411,11 @@ public class FileConfig {
         return null;
     }
 
-    private ArrayList<String> fileContent() {
-        ArrayList<String> content = new ArrayList<>();
+    private List<String> fileContent() {
+        List<String> content = new ArrayList<>();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.add(line);
-            }
-            reader.close();
+            Path path = Paths.get(filePath);
+            content = Files.readAllLines(path, StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
         }

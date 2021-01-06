@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Deprecated
 public abstract class FileDirectory<T extends ConfigObject> {
 
     private final String fileDirectory;
