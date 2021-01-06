@@ -20,7 +20,6 @@ public class OffHeapMap<V> implements Map<String, V> {
         if (!cacheDir.exists())
             cacheDir.mkdirs();
         if (deleteOnExit) {
-            System.out.println("Delete on Exit");
             Runtime.getRuntime().addShutdownHook(new Thread(this::delete));
         }
     }
