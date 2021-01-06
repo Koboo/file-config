@@ -61,4 +61,21 @@ public class ConfigTest {
         System.out.println("Double: " + valueD);
     }
 
+    @Test
+    public void testD() {
+        System.out.println("Test D byte-array");
+        String someText = "I'm so cool, i'm using my own FileConfig";
+        byte[] someBytes = someText.getBytes();
+        config.set("testBytes", someBytes);
+
+        byte[] testBytes = config.getByteArray("testBytes");
+        System.out.println(new String(testBytes));
+    }
+
+    @Test
+    public void testE() {
+        System.out.println("Test E unset");
+        config.unset("testBytes");
+    }
+
 }

@@ -121,38 +121,18 @@ public abstract class DataDirectory<T extends DataFile> {
         this.fileConfigCache.remove(identifier);
     }
 
-    public Map<String, T> getCachedMap() {
+    public Map<String, T> getMap() {
         return this.dataFileCache;
     }
 
-    public boolean contains(Filter.ExistsFilter filter) {
-        List<FileConfig> fileConfigList = listFileConfig();
-        if (!fileConfigList.isEmpty()) {
-            return fileConfigList
-                    .stream()
-                    .anyMatch(config -> config.contains(filter.getKey()));
-        }
-        return false;
-    }
-
-    public boolean contains(Filter.EqualsFilter filter) {
-        List<FileConfig> fileConfigList = listFileConfig();
-        if (!fileConfigList.isEmpty()) {
-            return fileConfigList
-                    .stream()
-                    .anyMatch(config -> config.contains(filter.getKey()) && config.get(filter.getKey()).equals(filter.getValue()));
-        }
-        return false;
-    }
-
-    public boolean contains(Filter.ExistsFilter... filters) {
+    public boolean containsAny(Filter.ExistsFilter... filters) {
         List<FileConfig> fileConfigList = listFileConfig();
         if (!fileConfigList.isEmpty()) {
             return fileConfigList
                     .stream()
                     .anyMatch(config -> {
                         for (Filter.ExistsFilter filter : filters) {
-                            if (!config.contains(filter.getKey()))
+                            if (!config.containsKey(filter.getKey()))
                                 return false;
                         }
                         return true;
@@ -161,14 +141,14 @@ public abstract class DataDirectory<T extends DataFile> {
         return false;
     }
 
-    public boolean contains(Filter.EqualsFilter... filters) {
+    public boolean containsAny(Filter.EqualsFilter... filters) {
         List<FileConfig> fileConfigList = listFileConfig();
         if (!fileConfigList.isEmpty()) {
             return fileConfigList
                     .stream()
                     .anyMatch(config -> {
                         for (Filter.EqualsFilter filter : filters) {
-                            if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                            if (!config.containsKey(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
                                 return false;
                         }
                         return true;
@@ -177,30 +157,12 @@ public abstract class DataDirectory<T extends DataFile> {
         return false;
     }
 
-    public T find(Filter.ExistsFilter filter) {
-        return listFileConfig()
-                .stream()
-                .filter(config -> config.contains(filter.getKey()))
-                .map(this::doMapping)
-                .findAny()
-                .orElse(null);
-    }
-
-    public T find(Filter.EqualsFilter filter) {
-        return listFileConfig()
-                .stream()
-                .filter(config -> config.contains(filter.getKey()) && config.get(filter.getKey()).equals(filter.getValue()))
-                .map(this::doMapping)
-                .findAny()
-                .orElse(null);
-    }
-
-    public T find(Filter.ExistsFilter... filters) {
+    public T findAny(Filter.ExistsFilter... filters) {
         return listFileConfig()
                 .stream()
                 .filter(config -> {
                     for (Filter.ExistsFilter filter : filters) {
-                        if (!config.contains(filter.getKey()))
+                        if (!config.containsKey(filter.getKey()))
                             return false;
                     }
                     return true;
@@ -210,12 +172,12 @@ public abstract class DataDirectory<T extends DataFile> {
                 .orElse(null);
     }
 
-    public T find(Filter.EqualsFilter... filters) {
+    public T findAny(Filter.EqualsFilter... filters) {
         return listFileConfig()
                 .stream()
                 .filter(config -> {
                     for (Filter.EqualsFilter filter : filters) {
-                        if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                        if (!config.containsKey(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
                             return false;
                     }
                     return true;
@@ -225,29 +187,12 @@ public abstract class DataDirectory<T extends DataFile> {
                 .orElse(null);
     }
 
-
-    public List<T> collect(Filter.ExistsFilter filter) {
-        return listFileConfig()
-                .stream()
-                .filter(config -> config.contains(filter.getKey()))
-                .map(this::doMapping)
-                .collect(Collectors.toList());
-    }
-
-    public List<T> collect(Filter.EqualsFilter filter) {
-        return listFileConfig()
-                .stream()
-                .filter(config -> config.contains(filter.getKey()) && config.get(filter.getKey()).equals(filter.getValue()))
-                .map(this::doMapping)
-                .collect(Collectors.toList());
-    }
-
-    public List<T> collect(Filter.ExistsFilter... filters) {
+    public List<T> collectAny(Filter.ExistsFilter... filters) {
         return listFileConfig()
                 .stream()
                 .filter(config -> {
                     for (Filter.ExistsFilter filter : filters) {
-                        if (!config.contains(filter.getKey()))
+                        if (!config.containsKey(filter.getKey()))
                             return false;
                     }
                     return true;
@@ -256,12 +201,12 @@ public abstract class DataDirectory<T extends DataFile> {
                 .collect(Collectors.toList());
     }
 
-    public List<T> collect(Filter.EqualsFilter... filters) {
+    public List<T> collectAny(Filter.EqualsFilter... filters) {
         return listFileConfig()
                 .stream()
                 .filter(config -> {
                     for (Filter.EqualsFilter filter : filters) {
-                        if (!config.contains(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
+                        if (!config.containsKey(filter.getKey()) || !config.get(filter.getKey()).equals(filter.getValue()))
                             return false;
                     }
                     return true;
