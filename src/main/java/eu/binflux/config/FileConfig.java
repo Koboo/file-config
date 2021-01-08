@@ -59,6 +59,20 @@ public class FileConfig {
         return configArrayList;
     }
 
+    public static List<File> listFiles(String path) {
+        List<File> fileList = new ArrayList<>();
+        File directory = new File(path);
+        if (directory.exists()) {
+            File[] dirFiles = directory.listFiles();
+            if (dirFiles != null)
+                for (int i = 0; i < dirFiles.length; i++) {
+                    File file = dirFiles[i];
+                    fileList.add(file);
+                }
+        }
+        return fileList;
+    }
+
     /*     STATIC FUNCTION METHODS     */
 
     public static boolean exists(String filePath) {
@@ -99,12 +113,12 @@ public class FileConfig {
                 if (parents != null && !parents.exists())
                     parents.mkdirs();
                 file.createNewFile();
+                if (consumer != null)
+                    consumer.accept(this);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        if (consumer != null)
-            consumer.accept(this);
     }
 
     /*     GETTER METHODS     */
@@ -284,7 +298,7 @@ public class FileConfig {
     public <T> void set(String key, T value, String comment) {
         try {
             String valueSet = value.toString();
-            if(value instanceof byte[])
+            if (value instanceof byte[])
                 valueSet = new String((byte[]) value);
             String keyValueString = key + SEPARATOR + valueSet;
             List<String> contentList = new ArrayList<>();
@@ -391,9 +405,9 @@ public class FileConfig {
 
     public Map<String, Object> asKeyValue() {
         Map<String, Object> valueMap = new HashMap<>();
-        for(String fileContent : fileContent()) {
+        for (String fileContent : fileContent()) {
             String[] contentSplit = fileContent.split(SEPARATOR);
-            if(contentSplit.length == 1) {
+            if (contentSplit.length == 1) {
                 String key = contentSplit[0];
                 String value = contentSplit[1];
                 valueMap.put(key, value);
