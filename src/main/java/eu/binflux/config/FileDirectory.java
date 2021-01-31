@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class FileDirectory<T extends ConfigObject> {
+public abstract class FileDirectory<T extends ConfigObject> implements AutoCloseable {
 
     private final String fileDirectory;
     private final String fileExtension;
@@ -20,8 +20,10 @@ public abstract class FileDirectory<T extends ConfigObject> {
         this.fileExtension = fileExtension;
         this.objectCache = new HashMap<>();
         this.executor = Executors.newSingleThreadExecutor();
-        Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdownNow));
+        loadFiles();
+    }
 
+    public void loadFiles() {
         File directory = new File(fileDirectory);
         if (directory.exists()) {
             if (directory.listFiles() != null)
@@ -33,6 +35,12 @@ public abstract class FileDirectory<T extends ConfigObject> {
         } else {
             directory.mkdirs();
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        objectCache.clear();
+        executor.shutdown();
     }
 
     public boolean existsObject(String objectId) {
