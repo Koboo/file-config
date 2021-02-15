@@ -21,15 +21,23 @@ public abstract class FileDirectory<T extends ConfigObject> {
         this.objectCache = new HashMap<>();
         this.executor = Executors.newSingleThreadExecutor();
         Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdownNow));
+        loadFiles();
+    }
 
-        File directory = new File(fileDirectory);
+    public void loadFiles() {
+        File directory = new File(this.fileDirectory);
+        objectCache.clear();
         if (directory.exists()) {
-            if (directory.listFiles() != null)
-                for (File file : directory.listFiles()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                final int length = files.length;
+                for (int i = 0; i < length; ++i) {
+                    File file = files[i];
                     FileConfig fileConfig = FileConfig.newConfig(file);
-                    T configObject = mapFromFileConfig(fileConfig);
-                    objectCache.put(configObject.getFileIdentifier(), configObject);
+                    T configObject = this.mapFromFileConfig(fileConfig);
+                    this.objectCache.put(configObject.getFileIdentifier(), configObject);
                 }
+            }
         } else {
             directory.mkdirs();
         }
