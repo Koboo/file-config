@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class FileDirectory<T extends ConfigObject> implements AutoCloseable {
+public abstract class FileDirectory<T extends ConfigObject> {
 
     private final String fileDirectory;
     private final String fileExtension;
@@ -20,27 +20,27 @@ public abstract class FileDirectory<T extends ConfigObject> implements AutoClose
         this.fileExtension = fileExtension;
         this.objectCache = new HashMap<>();
         this.executor = Executors.newSingleThreadExecutor();
+        Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdownNow));
         loadFiles();
     }
 
     public void loadFiles() {
-        File directory = new File(fileDirectory);
+        File directory = new File(this.fileDirectory);
+        objectCache.clear();
         if (directory.exists()) {
-            if (directory.listFiles() != null)
-                for (File file : directory.listFiles()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                final int length = files.length;
+                for (int i = 0; i < length; ++i) {
+                    File file = files[i];
                     FileConfig fileConfig = FileConfig.newConfig(file);
-                    T configObject = mapFromFileConfig(fileConfig);
-                    objectCache.put(configObject.getFileIdentifier(), configObject);
+                    T configObject = this.mapFromFileConfig(fileConfig);
+                    this.objectCache.put(configObject.getFileIdentifier(), configObject);
                 }
+            }
         } else {
             directory.mkdirs();
         }
-    }
-
-    @Override
-    public void close() throws Exception {
-        objectCache.clear();
-        executor.shutdown();
     }
 
     public boolean existsObject(String objectId) {
