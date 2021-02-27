@@ -113,12 +113,12 @@ public class FileConfig {
                 if (parents != null && !parents.exists())
                     parents.mkdirs();
                 file.createNewFile();
-                if (consumer != null)
-                    consumer.accept(this);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        if (consumer != null)
+            consumer.accept(this);
     }
 
     /*     GETTER METHODS     */
