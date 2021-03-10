@@ -1,4 +1,4 @@
-package eu.binflux.config;
+package eu.koboo.config;
 
 
 import org.junit.AfterClass;

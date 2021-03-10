@@ -1,4 +1,4 @@
-package eu.binflux.config;
+package eu.koboo.config;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

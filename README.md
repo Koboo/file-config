@@ -1,133 +1,83 @@
-### `FileConfig#newConfig()`
-
+## Create new `FileConfig`
 ````java
 FileConfig fileConfig = FileConfig.newConfig("my_config.cfg");
-````
-````java
+        
 FileConfig fileConfig = FileConfig.newConfig("my_config.cfg", (FileConfig) onInit -> {
     onInit.init("key", "value");
 }); 
-````
-````java
+        
 File file = new File("my_config.cfg");
 FileConfig fileConfig = FileConfig.newConfig(file, (FileConfig) onInit -> {
     onInit.init("key", "value");
 }); 
 ````
 
-### `FileConfig#newConfigList()`
+## Create new `List<FileConfig>`
 ````java
 List<FileConfig> fileConfigList = FileConfig.newConfigList("my_config_directory/");
-````
-````java
+        
 List<FileConfig> fileConfigList = FileConfig.newConfigList("my_config_directory/", (FileConfig) onInit -> {
     onInit.init("key", "value");
 });
-````
-````java
+        
 File file = new File("my_config_directory/");
 List<FileConfig> fileConfigList = FileConfig.newConfigList(file, (FileConfig) onInit -> {
     onInit.init("key", "value");
 });
 ````
 
-### `FileConfig#listFiles()`
+## Create new `List<File>`
 ````java
 List<File> fileConfigList = FileConfig.listFiles("my_config_directory/");
 ````
 
-### `FileConfig#exists()`
+## Check if `File` exists
 ````java
 boolean exists = FileConfig.exists("my_config.cfg");
-````
-````java
+        
 boolean exists = FileConfig.exists("my_config_directory/", my_config.cfg");
-````
-````java
+        
 File parent = new File("my_config_directory/");
 boolean exists = FileConfig.exists(parent, "my_config.cfg");
 ````
-### `FileConfig#delete()`
+
+## Delete `File`
 ````java
 FileConfig.delete("my_config.cfg");
-````
-````java
+
 File file = new File("my_config.cfg");
 FileConfig.delete(file);
 ````
-### `FileConfig#getFile()`
+
+## Get `File` of `FileConfig`
 ````java
 File file = fileConfig.getFile();
 ````
-### `FileConfig#get()`
+
+## Value Getter of `FileConfig`
 ````java
 Object value = fileConfig.get("key");
-````
-### `FileConfig#getString()`
-````java
 String value = fileConfig.getString("key");
-````
-### `FileConfig#getInt()`
-````java
 Integer value = fileConfig.getInt("key");
-````
-### `FileConfig#getDouble()`
-````java
 Double value = fileConfig.getDouble("key");
-````
-### `FileConfig#getFloat()`
-````java
 Float value = fileConfig.getFloat("key");
-````
-### `FileConfig#getShort()`
-````java
 Short value = fileConfig.getShort("key");
-````
-### `FileConfig#getLong()`
-````java
 Long value = fileConfig.getLong("key");
-````
-### `FileConfig#getBoolean()`
-````java
 Boolean value = fileConfig.getBoolean("key");
-````
-### `FileConfig#getByteArray()`
-````java
 byte[] value = fileConfig.getByteArray("key");
 ````
-### `FileConfig#getOr()`
+
+## Value Getter with default Value of `FileConfig`
 ````java
 Object value = fileConfig.getOr("key", null);
 ````
-### `FileConfig#getStringOr()`
 ````java
-String value = fileConfig.getStringOr("key", null);
-````
-### `FileConfig#getIntOr()`
-````java
-Integer value = fileConfig.getIntOr("key", null);
-````
-### `FileConfig#getDoubleOr()`
-````java
-Double value = fileConfig.getDoubleOr("key", null);
-````
-### `FileConfig#getFloatOr()`
-````java
-Float value = fileConfig.getFloatOr("key", null);
-````
-### `FileConfig#getShortOr()`
-````java
-Short value = fileConfig.getShortOr("key", null);
-````
-### `FileConfig#getLongOr()`
-````java
-Long value = fileConfig.getLongOr("key", null);
-````
-### `FileConfig#getBooleanOr()`
-````java
-Boolean value = fileConfig.getBooleanOr("key", null);
-````
-### `FileConfig#getByteArrayOr()`
-````java
-byte[] value = fileConfig.getByteArrayOr("key", null);
+String value = fileConfig.getStringOr("key", "defaultString");
+int value = fileConfig.getIntOr("key", 1);
+double value = fileConfig.getDoubleOr("key", 1.0);
+float value = fileConfig.getFloatOr("key", 0.1);
+short value = fileConfig.getShortOr("key", 1);
+long value = fileConfig.getLongOr("key", 1L);
+boolean value = fileConfig.getBooleanOr("key", true);
+byte[] value = fileConfig.getByteArrayOr("key", new byte[0]);
 ````

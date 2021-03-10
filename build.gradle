@@ -6,8 +6,7 @@ plugins {
 publishing {
     repositories {
         maven {
-            name = 'binflux'
-            url = 'http://repo.levenproxy.eu/releases'
+            url = 'http://repo.koboo.eu/releases'
             credentials {
                 username = System.getenv('REPO_USER')
                 password = System.getenv('REPO_TOKEN')
@@ -20,8 +19,8 @@ publishing {
         }
     }
 }
-group 'eu.binflux'
-version '1.3.3'
+group 'eu.koboo'
+version '1.3.4'
 sourceCompatibility = 1.8
 
 repositories {
