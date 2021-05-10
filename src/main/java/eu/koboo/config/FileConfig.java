@@ -1,10 +1,6 @@
 package eu.koboo.config;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -34,58 +30,7 @@ public class FileConfig {
         return new FileConfig(file.getPath(), consumer);
     }
 
-    /*     CONFIG DIRECTORY METHODS     */
-
-    public static List<FileConfig> newConfigList(String parent) {
-        return newConfigList(new File(parent), null);
-    }
-
-    public static List<FileConfig> newConfigList(String parent, Consumer<FileConfig> consumer) {
-        return newConfigList(new File(parent), consumer);
-    }
-
-    public static List<FileConfig> newConfigList(File parent) {
-        return newConfigList(parent, null);
-    }
-
-    public static List<FileConfig> newConfigList(File parent, Consumer<FileConfig> consumer) {
-        ArrayList<FileConfig> configArrayList = new ArrayList<>();
-        if (!parent.exists())
-            parent.mkdirs();
-        for (File file : Objects.requireNonNull(parent.listFiles())) {
-            FileConfig fileConfig = newConfig(file, consumer);
-            configArrayList.add(fileConfig);
-        }
-        return configArrayList;
-    }
-
-    public static List<File> listFiles(String path) {
-        List<File> fileList = new ArrayList<>();
-        File directory = new File(path);
-        if (directory.exists()) {
-            File[] dirFiles = directory.listFiles();
-            if (dirFiles != null)
-                for (int i = 0; i < dirFiles.length; i++) {
-                    File file = dirFiles[i];
-                    fileList.add(file);
-                }
-        }
-        return fileList;
-    }
-
     /*     STATIC FUNCTION METHODS     */
-
-    public static boolean exists(String filePath) {
-        return new File(filePath).exists();
-    }
-
-    public static boolean exists(String parent, String filePath) {
-        return new File(parent, filePath).exists();
-    }
-
-    public static boolean exists(File parent, String filePath) {
-        return new File(parent, filePath).exists();
-    }
 
     public static void delete(String filePath) {
         delete(new File(filePath));
@@ -104,7 +49,7 @@ public class FileConfig {
 
     private final String filePath;
 
-    FileConfig(String filePath, Consumer<FileConfig> consumer) {
+    private FileConfig(String filePath, Consumer<FileConfig> consumer) {
         this.filePath = filePath;
         File file = new File(filePath);
         if (!file.exists()) {
@@ -121,180 +66,6 @@ public class FileConfig {
             consumer.accept(this);
     }
 
-    /*     GETTER METHODS     */
-
-    public File getFile() {
-        return new File(filePath);
-    }
-
-    public Object get(String key) {
-        return getContentValue(key);
-    }
-
-    public String getString(String key) {
-        return getContentValue(key);
-    }
-
-    public Integer getInt(String key) {
-        return Integer.parseInt(getContentValue(key));
-    }
-
-    public Double getDouble(String key) {
-        return Double.parseDouble(getContentValue(key));
-    }
-
-    public Float getFloat(String key) {
-        return Float.parseFloat(getContentValue(key));
-    }
-
-    public Short getShort(String key) {
-        return Short.parseShort(getContentValue(key));
-    }
-
-    public Long getLong(String key) {
-        return Long.parseLong(getContentValue(key));
-    }
-
-    public Boolean getBoolean(String key) {
-        return Boolean.parseBoolean(getContentValue(key));
-    }
-
-    public byte[] getByteArray(String key) {
-        return ((String) getContentValue(key)).getBytes();
-    }
-
-    /*     GETTER DEFAULT METHODS     */
-
-    public Object getOr(String key, Object defaultO) {
-        try {
-            Object value = get(key);
-            return value == null ? defaultO : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultO;
-    }
-
-    public String getStringOr(String key, String defaultS) {
-        try {
-            String value = getString(key);
-            return value == null ? defaultS : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultS;
-    }
-
-    public int getIntOr(String key, int defaultI) {
-        try {
-            Integer value = getInt(key);
-            return value == null ? defaultI : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultI;
-    }
-
-    public double getDoubleOr(String key, double defaultD) {
-        try {
-            Double value = getDouble(key);
-            return value == null ? defaultD : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultD;
-    }
-
-    public float getFloatOr(String key, float defaultF) {
-        try {
-            Float value = getFloat(key);
-            return value == null ? defaultF : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultF;
-    }
-
-    public short getShortOr(String key, short defaultS) {
-        try {
-            Short value = getShort(key);
-            return value == null ? defaultS : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultS;
-    }
-
-    public long getLongOr(String key, long defaultL) {
-        try {
-            Long value = getLong(key);
-            return value == null ? defaultL : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultL;
-    }
-
-    public boolean getBooleanOr(String key, boolean defaultB) {
-        try {
-            Boolean value = getBoolean(key);
-            return value == null ? defaultB : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultB;
-    }
-
-    public byte[] getByteArrayOr(String key, byte[] defaultB) {
-        try {
-            byte[] value = getByteArray(key);
-            return value == null ? defaultB : value;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return defaultB;
-    }
-
-    /*     NON-STATIC FUNCTION METHODS     */
-
-    public int getLines() {
-        return fileContent().size();
-    }
-
-    public String getFileName() {
-        return new File(this.filePath).getName();
-    }
-
-    public <T> void init(String key, T value) {
-        init(key, value, null);
-    }
-
-    public <T> void init(String key, T value, String comment) {
-        if (!contains(key))
-            set(key, value, comment);
-    }
-
-    public void delete() {
-        delete(this.filePath);
-    }
-
-    @Deprecated
-    public boolean contains(String key) {
-        return containsKey(key);
-    }
-
-    public boolean containsKey(String key) {
-        return fileContent().parallelStream().anyMatch(line -> line.startsWith(key));
-    }
-
-    public boolean containsValue(String value) {
-        return fileContent().parallelStream().anyMatch(line -> line.endsWith(value));
-    }
-
-    public <T> void set(String key, T value) {
-        set(key, value, null);
-    }
-
     public <T> void set(String key, T value, String comment) {
         try {
             String valueSet = value.toString();
@@ -302,17 +73,17 @@ public class FileConfig {
                 valueSet = new String((byte[]) value);
             String keyValueString = key + SEPARATOR + valueSet;
             List<String> contentList = new ArrayList<>();
-            String lastContent = null;
-            for (String contentString : fileContent()) {
-                if (contentString.startsWith(key + SEPARATOR) && !contentString.equals(keyValueString)) {
-                    contentString = keyValueString;
-                    if (lastContent != null && lastContent.startsWith("#") && comment != null && !lastContent.equals(comment))
-                        contentList.remove(lastContent);
+            String lastLine = null;
+            for (String currentLine : FileUtils.readFileContent(filePath)) {
+                if (currentLine.startsWith(key + SEPARATOR) && !currentLine.equals(keyValueString)) {
+                    currentLine = keyValueString;
+                    if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
+                        contentList.remove(lastLine);
                     if (comment != null)
                         contentList.add("#" + comment);
                 }
-                contentList.add(contentString);
-                lastContent = contentString;
+                contentList.add(currentLine);
+                lastLine = currentLine;
             }
             if (!contentList.contains(keyValueString)) {
                 if (comment != null)
@@ -327,13 +98,13 @@ public class FileConfig {
         }
     }
 
-    public void unset(String key) {
+    public void remove(String key) {
         try {
-            String keyString = key + SEPARATOR;
+            key = key + SEPARATOR;
             List<String> contentList = new ArrayList<>();
             String lastContent = null;
-            for (String contentString : fileContent()) {
-                if (!contentString.startsWith(keyString)) {
+            for (String contentString : FileUtils.readFileContent(filePath)) {
+                if (!contentString.startsWith(key)) {
                     contentList.add(contentString);
                 }
             }
@@ -348,39 +119,42 @@ public class FileConfig {
     public <T> List<T> getList(String key) {
         List<T> arrayList = new ArrayList<>();
         boolean readList = false;
-        for (String contentLines : fileContent()) {
-            if (readList && contentLines.startsWith(LIST_SPLITTER))
-                arrayList.add((T) contentLines.replaceFirst(LIST_SPLITTER, ""));
-            else
+        for (String contentLines : FileUtils.readFileContent(filePath)) {
+            if (readList && contentLines.startsWith(LIST_SPLITTER)) {
+                String value = contentLines.replaceFirst(LIST_SPLITTER, "");
+                arrayList.add((T) parseType(value));
+            } else {
                 readList = false;
+            }
             if (contentLines.startsWith(key + SEPARATOR))
                 readList = true;
         }
         return arrayList;
     }
 
-    public <T extends List> void setList(String key, T value) {
-        setList(key, value, null);
-    }
-
     public <T extends List> void setList(String key, T value, String comment) {
         try {
             List<String> contentList = new ArrayList<>();
-            boolean readList = false;
-            String lastContent = null;
-            for (String contentString : fileContent()) {
-                if (!readList && !contentString.startsWith(key + SEPARATOR) && !contentString.startsWith(LIST_SPLITTER))
-                    contentList.add(contentString);
-                // End of List
-                if (!(readList && contentString.startsWith(LIST_SPLITTER)))
-                    readList = false;
-                // Start of List
-                if (contentString.startsWith(key + SEPARATOR)) {
-                    readList = true;
-                    if (lastContent != null && lastContent.startsWith("#") && comment != null && !lastContent.equals(comment))
-                        contentList.remove(lastContent);
+            boolean foundListKey = false;
+            String lastLine = null;
+            for (String currentLine : FileUtils.readFileContent(filePath)) {
+                // No current list
+                if (!foundListKey) {
+                    // Is this the list key?
+                    if (currentLine.equals(key + SEPARATOR)) {
+                        foundListKey = true;
+                        if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
+                            contentList.remove(lastLine);
+                    } else {
+                        contentList.add(currentLine);
+                    }
+                } else {
+                    if(!currentLine.startsWith(LIST_SPLITTER) && (currentLine.contains(SEPARATOR) || currentLine.startsWith("#"))) {
+                        contentList.add(currentLine);
+                        foundListKey = false;
+                    }
                 }
-                lastContent = contentString;
+                lastLine = currentLine;
             }
             PrintWriter writer = new PrintWriter(filePath, "UTF-8");
             contentList.forEach(writer::println);
@@ -403,11 +177,11 @@ public class FileConfig {
         }
     }
 
-    public Map<String, Object> asKeyValue() {
+    public Map<String, Object> allKeyValues() {
         Map<String, Object> valueMap = new HashMap<>();
-        for (String fileContent : fileContent()) {
+        for (String fileContent : FileUtils.readFileContent(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
-            if (contentSplit.length == 1) {
+            if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
                 String value = contentSplit[1];
                 valueMap.put(key, value);
@@ -416,25 +190,211 @@ public class FileConfig {
         return valueMap;
     }
 
-    private <T> T getContentValue(String key) {
-        for (String contentLines : fileContent()) {
+    public List<String> allKeys() {
+        List<String> keyList = new ArrayList<>();
+        for (String fileContent : FileUtils.readFileContent(filePath)) {
+            String[] contentSplit = fileContent.split(SEPARATOR);
+            if (contentSplit.length >= 2) {
+                String key = contentSplit[0];
+                keyList.add(key);
+            }
+        }
+        return keyList;
+    }
+
+    public <T> T get(String key) {
+        key = key + SEPARATOR;
+        for (String contentLines : FileUtils.readFileContent(filePath)) {
             if (contentLines.startsWith(key)) {
-                return (T) contentLines.replaceFirst(key + SEPARATOR, "");
+                String value = contentLines.replaceFirst(key, "");
+                if (value.equalsIgnoreCase(""))
+                    return (T) getList(key);
+                return parseType(value);
             }
         }
         return null;
     }
 
-    private List<String> fileContent() {
-        List<String> content = new ArrayList<>();
+    private <T> T parseType(String value) {
+        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"))
+            return (T) Boolean.valueOf(value);
+        if (value.matches("-?\\d+(\\.\\d+)?")) {
+            if (value.contains(".")) {
+                double valueDouble = Double.valueOf(value);
+                if (valueDouble < Float.MAX_VALUE)
+                    return (T) Float.valueOf(value);
+                return (T) Double.valueOf(value);
+            } else {
+                long valueLong = Long.valueOf(value);
+                if (valueLong < Short.MAX_VALUE)
+                    return (T) Short.valueOf(value);
+                if (valueLong < Integer.MAX_VALUE)
+                    return (T) Integer.valueOf(value);
+                return (T) Long.valueOf(value);
+            }
+        }
+        return (T) value;
+    }
+
+    public <T extends List> void setList(String key, T value) {
+        setList(key, value, null);
+    }
+
+    public <T> void set(String key, T value) {
+        set(key, value, null);
+    }
+
+    public boolean containsKey(String key) {
+        String finalKey = key + SEPARATOR;
+        return FileUtils.readFileContent(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
+    }
+
+    public boolean containsValue(String value) {
+        String finalValue = SEPARATOR + " " + value;
+        return FileUtils.readFileContent(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
+    }
+
+    public <T> void init(String key, T value, String comment) {
+        if (!containsKey(key))
+            set(key, value, comment);
+    }
+
+    public <T> void init(String key, T value) {
+        init(key, value, null);
+    }
+
+    @Deprecated
+    public void unset(String key) {
+        this.remove(key);
+    }
+
+    public int getLineCount() {
+        return FileUtils.readFileContent(filePath).size();
+    }
+
+    public String getFileName() {
+        return getFile().getName();
+    }
+
+    public File getFile() {
+        return new File(this.filePath);
+    }
+
+    public void delete() {
+        delete(this.filePath);
+    }
+
+
+    public String getString(String key) {
+        return get(key).toString();
+    }
+
+    public String getString(String key, String defaultS) {
         try {
-            Path path = Paths.get(filePath);
-            content = Files.readAllLines(path, StandardCharsets.UTF_8);
+            String value = getString(key);
+            return value == null ? defaultS : value;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return content;
+        return defaultS;
     }
 
+    public Integer getInt(String key) {
+        return Integer.parseInt(get(key).toString());
+    }
+
+    public int getInt(String key, int defaultI) {
+        try {
+            Integer value = getInt(key);
+            return value == null ? defaultI : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultI;
+    }
+
+    public Double getDouble(String key) {
+        return Double.parseDouble(get(key).toString());
+    }
+
+    public double getDouble(String key, double defaultD) {
+        try {
+            Double value = getDouble(key);
+            return value == null ? defaultD : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultD;
+    }
+
+    public Float getFloat(String key) {
+        return Float.parseFloat(get(key).toString());
+    }
+
+    public float getFloat(String key, float defaultF) {
+        try {
+            Float value = getFloat(key);
+            return value == null ? defaultF : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultF;
+    }
+
+    public Short getShort(String key) {
+        return Short.parseShort(get(key).toString());
+    }
+
+    public short getShort(String key, short defaultS) {
+        try {
+            Short value = getShort(key);
+            return value == null ? defaultS : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultS;
+    }
+
+    public Long getLong(String key) {
+        return Long.parseLong(get(key).toString());
+    }
+
+    public long getLong(String key, long defaultL) {
+        try {
+            Long value = getLong(key);
+            return value == null ? defaultL : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultL;
+    }
+
+    public Boolean getBoolean(String key) {
+        return Boolean.parseBoolean(get(key).toString());
+    }
+
+    public boolean getBoolean(String key, boolean defaultB) {
+        try {
+            Boolean value = getBoolean(key);
+            return value == null ? defaultB : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultB;
+    }
+
+    public byte[] getByteArray(String key) {
+        return get(key).toString().getBytes();
+    }
+
+    public byte[] getByteArray(String key, byte[] defaultB) {
+        try {
+            byte[] value = getByteArray(key);
+            return value == null ? defaultB : value;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultB;
+    }
 }
 
