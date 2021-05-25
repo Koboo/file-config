@@ -102,4 +102,11 @@ public class ConfigTest {
         getter.forEach(System.out::println);
     }
 
+    @Test
+    public void testI() {
+        System.out.println("Test I Resources");
+        FileConfig cfg = FileConfig.fromResource("test_rsc.cfg");
+        cfg.allKeys().forEach(key -> System.out.println(cfg.get(key) + ""));
+    }
+
 }

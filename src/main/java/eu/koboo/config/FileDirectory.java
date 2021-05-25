@@ -12,13 +12,11 @@ public abstract class FileDirectory<T extends ConfigObject> {
     private final String fileDirectory;
     private final String fileExtension;
 
-    private final Map<String, T> objectCache;
     private final ExecutorService executor;
 
     public FileDirectory(String fileDirectory, String fileExtension) {
         this.fileDirectory = fileDirectory;
         this.fileExtension = fileExtension;
-        this.objectCache = new HashMap<>();
         this.executor = Executors.newSingleThreadExecutor();
         Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdownNow));
         loadFiles();
@@ -26,7 +24,6 @@ public abstract class FileDirectory<T extends ConfigObject> {
 
     public void loadFiles() {
         File directory = new File(this.fileDirectory);
-        objectCache.clear();
         if (directory.exists()) {
             File[] files = directory.listFiles();
             if (files != null) {
@@ -35,7 +32,6 @@ public abstract class FileDirectory<T extends ConfigObject> {
                     File file = files[i];
                     FileConfig fileConfig = FileConfig.newConfig(file);
                     T configObject = this.mapFromFileConfig(fileConfig);
-                    this.objectCache.put(configObject.getFileIdentifier(), configObject);
                 }
             }
         } else {
@@ -43,12 +39,11 @@ public abstract class FileDirectory<T extends ConfigObject> {
         }
     }
 
-    public boolean existsObject(String objectId) {
-        return this.objectCache.containsKey(objectId);
+    public boolean existsObject(String fileIdentifier) {
+        return getFileObject(fileIdentifier).exists();
     }
 
     public void saveObject(T configObject) {
-        this.objectCache.put(configObject.getFileIdentifier(), configObject);
         this.executor.execute(() -> {
             FileConfig fileConfig = FileConfig.newConfig(getFileObject(configObject.getFileIdentifier()));
             saveInFileConfig(configObject, fileConfig);
@@ -56,22 +51,14 @@ public abstract class FileDirectory<T extends ConfigObject> {
     }
 
     public void removeObject(String objectId) {
-        this.objectCache.remove(objectId);
         this.executor.execute(() -> FileConfig.newConfig(getFileObject(objectId)).delete());
     }
 
     public T getObject(String objectId) {
-        T object = this.objectCache.getOrDefault(objectId, null);
-        if (object == null) {
-            File file = getFileObject(objectId);
-            if (file.exists())
-                object = mapFromFileConfig(FileConfig.newConfig(file));
-        }
-        return object;
-    }
-
-    public Map<String, T> getObjectMap() {
-        return this.objectCache;
+        File file = getFileObject(objectId);
+        if (file.exists())
+            return mapFromFileConfig(FileConfig.newConfig(file));
+        return null;
     }
 
     private File getFileObject(String identifier) {

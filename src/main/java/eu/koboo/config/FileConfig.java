@@ -1,6 +1,7 @@
 package eu.koboo.config;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -15,7 +16,7 @@ public class FileConfig {
     /*     CONFIG METHODS     */
 
     public static FileConfig newConfig(String file) {
-        return new FileConfig(file, null);
+        return newConfig(file, null);
     }
 
     public static FileConfig newConfig(String file, Consumer<FileConfig> consumer) {
@@ -23,14 +24,51 @@ public class FileConfig {
     }
 
     public static FileConfig newConfig(File file) {
-        return new FileConfig(file.getPath(), null);
+        return newConfig(file.getPath(), null);
     }
 
     public static FileConfig newConfig(File file, Consumer<FileConfig> consumer) {
-        return new FileConfig(file.getPath(), consumer);
+        return newConfig(file.getPath(), consumer);
+    }
+
+    public static FileConfig fromResource(String resource) {
+        return fromResource(resource, null);
+    }
+
+    public static FileConfig fromResource(String resource, Consumer<FileConfig> consumer) {
+        try {
+            ClassLoader classLoader = FileConfig.class.getClassLoader();
+
+            URL url = classLoader.getResource(resource);
+            File file = new File(url.toURI());
+
+            File tmpFile = new File(resource);
+            if (!tmpFile.exists()) {
+                tmpFile.createNewFile();
+            }
+
+            moveFile(file, tmpFile);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new FileConfig(resource, consumer);
     }
 
     /*     STATIC FUNCTION METHODS     */
+
+    public static File getResource(String path) {
+        try {
+            ClassLoader classLoader = FileConfig.class.getClassLoader();
+
+            URL url = classLoader.getResource(path);
+            File file = new File(url.toURI());
+            return file;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static void delete(String filePath) {
         delete(new File(filePath));
@@ -40,6 +78,23 @@ public class FileConfig {
         try {
             if (file.exists())
                 file.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void moveFile(File from, File to) {
+        try {
+            FileInputStream inputStream = new FileInputStream(from);
+            FileOutputStream outputStream = new FileOutputStream(to);
+            int n = 0;
+            while ((n = inputStream.read()) != -1) {
+                outputStream.write(n);
+            }
+            if (inputStream != null)
+                inputStream.close();
+            if (outputStream != null)
+                outputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -149,7 +204,7 @@ public class FileConfig {
                         contentList.add(currentLine);
                     }
                 } else {
-                    if(!currentLine.startsWith(LIST_SPLITTER) && (currentLine.contains(SEPARATOR) || currentLine.startsWith("#"))) {
+                    if (!currentLine.startsWith(LIST_SPLITTER) && (currentLine.contains(SEPARATOR) || currentLine.startsWith("#"))) {
                         contentList.add(currentLine);
                         foundListKey = false;
                     }
@@ -221,14 +276,14 @@ public class FileConfig {
         if (value.matches("-?\\d+(\\.\\d+)?")) {
             if (value.contains(".")) {
                 double valueDouble = Double.valueOf(value);
-                if (valueDouble < Float.MAX_VALUE)
+                if (valueDouble <= Float.MAX_VALUE && valueDouble >= Float.MIN_VALUE)
                     return (T) Float.valueOf(value);
                 return (T) Double.valueOf(value);
             } else {
                 long valueLong = Long.valueOf(value);
-                if (valueLong < Short.MAX_VALUE)
+                if (valueLong <= Short.MAX_VALUE && valueLong >= Short.MIN_VALUE)
                     return (T) Short.valueOf(value);
-                if (valueLong < Integer.MAX_VALUE)
+                if (valueLong <= Integer.MAX_VALUE && valueLong >= Integer.MIN_VALUE)
                     return (T) Integer.valueOf(value);
                 return (T) Long.valueOf(value);
             }
@@ -250,7 +305,7 @@ public class FileConfig {
     }
 
     public boolean containsValue(String value) {
-        String finalValue = SEPARATOR + " " + value;
+        String finalValue = SEPARATOR + value;
         return FileUtils.readFileContent(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
     }
 
