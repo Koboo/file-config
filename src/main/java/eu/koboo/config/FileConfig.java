@@ -47,7 +47,7 @@ public class FileConfig {
                 tmpFile.createNewFile();
             }
 
-            moveFile(file, tmpFile);
+            FileUtils.moveFile(file, tmpFile);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,36 +68,6 @@ public class FileConfig {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void delete(String filePath) {
-        delete(new File(filePath));
-    }
-
-    public static void delete(File file) {
-        try {
-            if (file.exists())
-                file.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void moveFile(File from, File to) {
-        try {
-            FileInputStream inputStream = new FileInputStream(from);
-            FileOutputStream outputStream = new FileOutputStream(to);
-            int n = 0;
-            while ((n = inputStream.read()) != -1) {
-                outputStream.write(n);
-            }
-            if (inputStream != null)
-                inputStream.close();
-            if (outputStream != null)
-                outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /*     CLASS CONSTRUCTOR     */
@@ -336,7 +306,7 @@ public class FileConfig {
     }
 
     public void delete() {
-        delete(this.filePath);
+        FileUtils.delete(this.filePath);
     }
 
 
