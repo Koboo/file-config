@@ -1,9 +1,6 @@
 package eu.koboo.config;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -95,5 +92,23 @@ public class FileUtils {
                 }
         }
         return fileList;
+    }
+
+    public static List<String> readFileContentBuffer(String filePath) {
+        List<String> content = new ArrayList<>();
+        try {
+            File file = new File(filePath);
+            if(file.exists()) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+                String line;
+                while((line = reader.readLine()) != null) {
+                    content.add(line);
+                }
+                reader.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return content;
     }
 }

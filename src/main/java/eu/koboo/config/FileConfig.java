@@ -69,7 +69,7 @@ public class FileConfig {
             String keyValueString = key + SEPARATOR + valueSet;
             List<String> contentList = new ArrayList<>();
             String lastLine = null;
-            for (String currentLine : FileUtils.readFileContent(filePath)) {
+            for (String currentLine : FileUtils.readFileContentBuffer(filePath)) {
                 if (currentLine.startsWith(key + SEPARATOR) && !currentLine.equals(keyValueString)) {
                     currentLine = keyValueString;
                     if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
@@ -98,7 +98,7 @@ public class FileConfig {
             key = key + SEPARATOR;
             List<String> contentList = new ArrayList<>();
             String lastContent = null;
-            for (String contentString : FileUtils.readFileContent(filePath)) {
+            for (String contentString : FileUtils.readFileContentBuffer(filePath)) {
                 if (!contentString.startsWith(key)) {
                     contentList.add(contentString);
                 }
@@ -114,7 +114,7 @@ public class FileConfig {
     public <T> List<T> getList(String key) {
         List<T> arrayList = new ArrayList<>();
         boolean readList = false;
-        for (String contentLines : FileUtils.readFileContent(filePath)) {
+        for (String contentLines : FileUtils.readFileContentBuffer(filePath)) {
             if (readList && contentLines.startsWith(LIST_SPLITTER)) {
                 String value = contentLines.replaceFirst(LIST_SPLITTER, "");
                 arrayList.add((T) parseType(value));
@@ -132,7 +132,7 @@ public class FileConfig {
             List<String> contentList = new ArrayList<>();
             boolean foundListKey = false;
             String lastLine = null;
-            for (String currentLine : FileUtils.readFileContent(filePath)) {
+            for (String currentLine : FileUtils.readFileContentBuffer(filePath)) {
                 // No current list
                 if (!foundListKey) {
                     // Is this the list key?
@@ -174,7 +174,7 @@ public class FileConfig {
 
     public Map<String, Object> allKeyValues() {
         Map<String, Object> valueMap = new HashMap<>();
-        for (String fileContent : FileUtils.readFileContent(filePath)) {
+        for (String fileContent : FileUtils.readFileContentBuffer(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
             if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
@@ -187,7 +187,7 @@ public class FileConfig {
 
     public List<String> allKeys() {
         List<String> keyList = new ArrayList<>();
-        for (String fileContent : FileUtils.readFileContent(filePath)) {
+        for (String fileContent : FileUtils.readFileContentBuffer(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
             if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
@@ -199,7 +199,7 @@ public class FileConfig {
 
     public <T> T get(String key) {
         key = key + SEPARATOR;
-        for (String contentLines : FileUtils.readFileContent(filePath)) {
+        for (String contentLines : FileUtils.readFileContentBuffer(filePath)) {
             if (contentLines.startsWith(key)) {
                 String value = contentLines.replaceFirst(key, "");
                 if (value.equalsIgnoreCase(""))
@@ -241,12 +241,12 @@ public class FileConfig {
 
     public boolean containsKey(String key) {
         String finalKey = key + SEPARATOR;
-        return FileUtils.readFileContent(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
+        return FileUtils.readFileContentBuffer(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
     }
 
     public boolean containsValue(String value) {
         String finalValue = SEPARATOR + value;
-        return FileUtils.readFileContent(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
+        return FileUtils.readFileContentBuffer(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
     }
 
     public <T> void init(String key, T value, String comment) {
@@ -259,7 +259,7 @@ public class FileConfig {
     }
 
     public int getLineCount() {
-        return FileUtils.readFileContent(filePath).size();
+        return FileUtils.readFileContentBuffer(filePath).size();
     }
 
     public String getFileName() {
