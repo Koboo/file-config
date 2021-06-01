@@ -1,12 +1,20 @@
 package eu.koboo.config;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Predicate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class FileUtils {
 
@@ -110,5 +118,48 @@ public class FileUtils {
             e.printStackTrace();
         }
         return content;
+    }
+
+    public static void downloadFile(String urlFrom, File file) {
+        try {
+            if (file.exists())
+                file.delete();
+            file.createNewFile();
+
+            URLConnection connection = new URL(urlFrom).openConnection();
+            connection.addRequestProperty("User-Agent", "Mozilla/4.0");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            ReadableByteChannel channel = Channels.newChannel(connection.getInputStream());
+            FileOutputStream out = new FileOutputStream(file);
+            out.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);
+
+            out.close();
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void unzipFile(File zippedFile, Predicate<ZipEntry> unzipCondition) {
+        try {
+
+            byte[] buffer = new byte[1024];
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(zippedFile));
+            ZipEntry zipEntry;
+            while ((zipEntry = zis.getNextEntry()) != null) {
+                if (unzipCondition.test(zipEntry)) {
+                    FileOutputStream fos = new FileOutputStream(zipEntry.getName());
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                    fos.close();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
