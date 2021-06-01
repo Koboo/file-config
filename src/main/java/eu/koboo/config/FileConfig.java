@@ -36,68 +36,8 @@ public class FileConfig {
     }
 
     public static FileConfig fromResource(String resource, Consumer<FileConfig> consumer) {
-        try {
-            ClassLoader classLoader = FileConfig.class.getClassLoader();
-
-            URL url = classLoader.getResource(resource);
-            File file = new File(url.toURI());
-
-            File tmpFile = new File(resource);
-            if (!tmpFile.exists()) {
-                tmpFile.createNewFile();
-            }
-
-            moveFile(file, tmpFile);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new FileConfig(resource, consumer);
-    }
-
-    /*     STATIC FUNCTION METHODS     */
-
-    public static File getResource(String path) {
-        try {
-            ClassLoader classLoader = FileConfig.class.getClassLoader();
-
-            URL url = classLoader.getResource(path);
-            File file = new File(url.toURI());
-            return file;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static void delete(String filePath) {
-        delete(new File(filePath));
-    }
-
-    public static void delete(File file) {
-        try {
-            if (file.exists())
-                file.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void moveFile(File from, File to) {
-        try {
-            FileInputStream inputStream = new FileInputStream(from);
-            FileOutputStream outputStream = new FileOutputStream(to);
-            int n = 0;
-            while ((n = inputStream.read()) != -1) {
-                outputStream.write(n);
-            }
-            if (inputStream != null)
-                inputStream.close();
-            if (outputStream != null)
-                outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        File file = FileUtils.exportResource(resource);
+        return file.exists() ? new FileConfig(resource, consumer) : null;
     }
 
     /*     CLASS CONSTRUCTOR     */
@@ -318,11 +258,6 @@ public class FileConfig {
         init(key, value, null);
     }
 
-    @Deprecated
-    public void unset(String key) {
-        this.remove(key);
-    }
-
     public int getLineCount() {
         return FileUtils.readFileContent(filePath).size();
     }
@@ -336,9 +271,8 @@ public class FileConfig {
     }
 
     public void delete() {
-        delete(this.filePath);
+        FileUtils.delete(this.filePath);
     }
-
 
     public String getString(String key) {
         return get(key).toString();
