@@ -1,7 +1,6 @@
 package eu.koboo.config;
 
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -36,7 +35,7 @@ public class FileConfig {
     }
 
     public static FileConfig fromResource(String resource, Consumer<FileConfig> consumer) {
-        File file = FileUtils.exportResource(resource);
+        File file = FileUtilities.exportResource(resource);
         return file.exists() ? new FileConfig(resource, consumer) : null;
     }
 
@@ -69,7 +68,7 @@ public class FileConfig {
             String keyValueString = key + SEPARATOR + valueSet;
             List<String> contentList = new ArrayList<>();
             String lastLine = null;
-            for (String currentLine : FileUtils.readFileContentBuffer(filePath)) {
+            for (String currentLine : ReadUtilities.readBuffer(filePath)) {
                 if (currentLine.startsWith(key + SEPARATOR) && !currentLine.equals(keyValueString)) {
                     currentLine = keyValueString;
                     if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
@@ -98,7 +97,7 @@ public class FileConfig {
             key = key + SEPARATOR;
             List<String> contentList = new ArrayList<>();
             String lastContent = null;
-            for (String contentString : FileUtils.readFileContentBuffer(filePath)) {
+            for (String contentString : ReadUtilities.readBuffer(filePath)) {
                 if (!contentString.startsWith(key)) {
                     contentList.add(contentString);
                 }
@@ -114,7 +113,7 @@ public class FileConfig {
     public <T> List<T> getList(String key) {
         List<T> arrayList = new ArrayList<>();
         boolean readList = false;
-        for (String contentLines : FileUtils.readFileContentBuffer(filePath)) {
+        for (String contentLines : ReadUtilities.readBuffer(filePath)) {
             if (readList && contentLines.startsWith(LIST_SPLITTER)) {
                 String value = contentLines.replaceFirst(LIST_SPLITTER, "");
                 arrayList.add((T) parseType(value));
@@ -132,7 +131,7 @@ public class FileConfig {
             List<String> contentList = new ArrayList<>();
             boolean foundListKey = false;
             String lastLine = null;
-            for (String currentLine : FileUtils.readFileContentBuffer(filePath)) {
+            for (String currentLine : ReadUtilities.readBuffer(filePath)) {
                 // No current list
                 if (!foundListKey) {
                     // Is this the list key?
@@ -174,7 +173,7 @@ public class FileConfig {
 
     public Map<String, Object> allKeyValues() {
         Map<String, Object> valueMap = new HashMap<>();
-        for (String fileContent : FileUtils.readFileContentBuffer(filePath)) {
+        for (String fileContent : ReadUtilities.readBuffer(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
             if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
@@ -187,7 +186,7 @@ public class FileConfig {
 
     public List<String> allKeys() {
         List<String> keyList = new ArrayList<>();
-        for (String fileContent : FileUtils.readFileContentBuffer(filePath)) {
+        for (String fileContent : ReadUtilities.readBuffer(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
             if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
@@ -199,7 +198,7 @@ public class FileConfig {
 
     public <T> T get(String key) {
         key = key + SEPARATOR;
-        for (String contentLines : FileUtils.readFileContentBuffer(filePath)) {
+        for (String contentLines : ReadUtilities.readBuffer(filePath)) {
             if (contentLines.startsWith(key)) {
                 String value = contentLines.replaceFirst(key, "");
                 if (value.equalsIgnoreCase(""))
@@ -241,12 +240,12 @@ public class FileConfig {
 
     public boolean containsKey(String key) {
         String finalKey = key + SEPARATOR;
-        return FileUtils.readFileContentBuffer(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
+        return ReadUtilities.readBuffer(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
     }
 
     public boolean containsValue(String value) {
         String finalValue = SEPARATOR + value;
-        return FileUtils.readFileContentBuffer(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
+        return ReadUtilities.readBuffer(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
     }
 
     public <T> void init(String key, T value, String comment) {
@@ -259,7 +258,7 @@ public class FileConfig {
     }
 
     public int getLineCount() {
-        return FileUtils.readFileContentBuffer(filePath).size();
+        return ReadUtilities.readBuffer(filePath).size();
     }
 
     public String getFileName() {
@@ -267,11 +266,11 @@ public class FileConfig {
     }
 
     public File getFile() {
-        return new File(this.filePath);
+        return new File(filePath);
     }
 
     public void delete() {
-        FileUtils.delete(this.filePath);
+        FileUtilities.deleteRecursively(filePath);
     }
 
     public String getString(String key) {
