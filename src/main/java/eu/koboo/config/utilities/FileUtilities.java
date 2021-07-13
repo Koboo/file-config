@@ -1,4 +1,6 @@
-package eu.koboo.config;
+package eu.koboo.config.utilities;
+
+import eu.koboo.config.FileConfig;
 
 import java.io.*;
 import java.net.URL;
@@ -69,7 +71,9 @@ public class FileUtilities {
             if (dirFiles != null)
                 for (int i = 0; i < dirFiles.length; i++) {
                     File file = dirFiles[i];
-                    fileList.add(file);
+                    if(file.exists()) {
+                        fileList.add(file);
+                    }
                 }
         }
         return fileList;

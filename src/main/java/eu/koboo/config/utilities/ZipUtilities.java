@@ -1,4 +1,4 @@
-package eu.koboo.config;
+package eu.koboo.config.utilities;
 
 import java.io.File;
 import java.io.FileInputStream;

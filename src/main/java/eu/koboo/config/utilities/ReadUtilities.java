@@ -1,4 +1,4 @@
-package eu.koboo.config;
+package eu.koboo.config.utilities;
 
 import java.io.BufferedReader;
 import java.io.File;
