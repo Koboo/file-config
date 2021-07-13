@@ -4,6 +4,10 @@ import eu.koboo.config.Config;
 import eu.koboo.config.FileConfig;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,14 +28,31 @@ public abstract class ConfigDirectory<T extends ConfigMapping> {
     }
 
     public void saveObject(T config) {
-        executor.execute(() -> {
+        saveObject(config, false);
+    }
+
+    public void saveObject(T config, boolean async) {
+        if(async) {
+            executor.execute(() -> {
+                FileConfig fileConfig = Config.of(getJavaFile(config.getId()));
+                toConfig(config, fileConfig);
+            });
+        } else {
             FileConfig fileConfig = Config.of(getJavaFile(config.getId()));
             toConfig(config, fileConfig);
-        });
+        }
     }
 
     public void removeObject(String id) {
-        executor.execute(() -> Config.of(getJavaFile(id)).delete());
+        removeObject(id, false);
+    }
+
+    public void removeObject(String id, boolean async) {
+        if(async) {
+            executor.execute(() -> Config.of(getJavaFile(id)).delete());
+        } else {
+            Config.of(getJavaFile(id)).delete();
+        }
     }
 
     public T getObject(String id) {
@@ -41,7 +62,29 @@ public abstract class ConfigDirectory<T extends ConfigMapping> {
         return null;
     }
 
-    private File getJavaFile(String identifier) {
+    public List<T> getObjectList() {
+        List<T> objectList = new ArrayList<>();
+        for(FileConfig cfg : Config.ofDirectory(fileDirectory)) {
+            T object = fromConfig(cfg);
+            if(object != null) {
+                objectList.add(object);
+            }
+        }
+        return objectList;
+    }
+
+    public Map<String, T> getObjectMap() {
+        List<T> objectList = getObjectList();
+        Map<String, T> objectMap = new HashMap<>();
+        if(objectList != null && !objectList.isEmpty()) {
+            for(T config : objectList) {
+                objectMap.put(config.getId(), config);
+            }
+        }
+        return objectMap;
+    }
+
+    protected File getJavaFile(String identifier) {
         return new File(fileDirectory, identifier + "." + fileExtension);
     }
 
