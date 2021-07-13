@@ -1,5 +1,8 @@
 package eu.koboo.config;
 
+import eu.koboo.config.utilities.FileUtilities;
+import eu.koboo.config.utilities.ReadUtilities;
+
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -7,43 +10,33 @@ import java.util.function.Consumer;
 @SuppressWarnings({"all"})
 public class FileConfig {
 
-    /*     VARIABLES     */
+    @Deprecated
+    public static FileConfig newConfig(String path) {
+        return Config.of(path);
+    }
+
+    @Deprecated
+    public static FileConfig newConfig(String path, Consumer<FileConfig> consumer) {
+        return Config.of(path, consumer);
+    }
+
+    @Deprecated
+    public static FileConfig newConfig(File file) {
+        return Config.of(file.getPath(), null);
+    }
+
+    @Deprecated
+    public static FileConfig newConfig(File file, Consumer<FileConfig> consumer) {
+        return Config.of(file.getPath(), consumer);
+    }
+
 
     private static final String SEPARATOR = ": ";
     private static final String LIST_SPLITTER = "  - ";
 
-    /*     CONFIG METHODS     */
-
-    public static FileConfig newConfig(String file) {
-        return newConfig(file, null);
-    }
-
-    public static FileConfig newConfig(String file, Consumer<FileConfig> consumer) {
-        return new FileConfig(file, consumer);
-    }
-
-    public static FileConfig newConfig(File file) {
-        return newConfig(file.getPath(), null);
-    }
-
-    public static FileConfig newConfig(File file, Consumer<FileConfig> consumer) {
-        return newConfig(file.getPath(), consumer);
-    }
-
-    public static FileConfig fromResource(String resource) {
-        return fromResource(resource, null);
-    }
-
-    public static FileConfig fromResource(String resource, Consumer<FileConfig> consumer) {
-        File file = FileUtilities.exportResource(resource);
-        return file.exists() ? new FileConfig(resource, consumer) : null;
-    }
-
-    /*     CLASS CONSTRUCTOR     */
-
     private final String filePath;
 
-    private FileConfig(String filePath, Consumer<FileConfig> consumer) {
+    protected FileConfig(String filePath, Consumer<FileConfig> consumer) {
         this.filePath = filePath;
         File file = new File(filePath);
         if (!file.exists()) {
@@ -58,6 +51,10 @@ public class FileConfig {
         }
         if (consumer != null)
             consumer.accept(this);
+    }
+
+    public <T> void set(String key, T value) {
+        set(key, value, null);
     }
 
     public <T> void set(String key, T value, String comment) {
@@ -124,6 +121,10 @@ public class FileConfig {
                 readList = true;
         }
         return arrayList;
+    }
+
+    public <T extends List> void setList(String key, T value) {
+        setList(key, value, null);
     }
 
     public <T extends List> void setList(String key, T value, String comment) {
@@ -230,12 +231,20 @@ public class FileConfig {
         return (T) value;
     }
 
-    public <T extends List> void setList(String key, T value) {
-        setList(key, value, null);
+    public int getLineCount() {
+        return ReadUtilities.readBuffer(filePath).size();
     }
 
-    public <T> void set(String key, T value) {
-        set(key, value, null);
+    public String getFileName() {
+        return getFile().getName();
+    }
+
+    public File getFile() {
+        return new File(filePath);
+    }
+
+    public void delete() {
+        FileUtilities.deleteRecursively(filePath);
     }
 
     public boolean containsKey(String key) {
@@ -255,22 +264,6 @@ public class FileConfig {
 
     public <T> void init(String key, T value) {
         init(key, value, null);
-    }
-
-    public int getLineCount() {
-        return ReadUtilities.readBuffer(filePath).size();
-    }
-
-    public String getFileName() {
-        return getFile().getName();
-    }
-
-    public File getFile() {
-        return new File(filePath);
-    }
-
-    public void delete() {
-        FileUtilities.deleteRecursively(filePath);
     }
 
     public String getString(String key) {
