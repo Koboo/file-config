@@ -15,7 +15,7 @@ public class ListTest {
 
     @BeforeClass
     public static void before() {
-        config = FileConfig.newConfig("test.cfg");
+        config = Config.of("test.cfg");
         System.out.println("== " + config.getFileName());
     }
 
