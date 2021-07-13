@@ -1,50 +1,42 @@
 package eu.koboo.config;
 
+import eu.koboo.config.utilities.FileUtilities;
+import eu.koboo.config.utilities.ReadUtilities;
+
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 
 @SuppressWarnings({"all"})
 public class FileConfig {
 
-    /*     VARIABLES     */
+    @Deprecated
+    public static FileConfig newConfig(String path) {
+        return Config.of(path);
+    }
+
+    @Deprecated
+    public static FileConfig newConfig(String path, Consumer<FileConfig> consumer) {
+        return Config.of(path, consumer);
+    }
+
+    @Deprecated
+    public static FileConfig newConfig(File file) {
+        return Config.of(file.getPath(), null);
+    }
+
+    @Deprecated
+    public static FileConfig newConfig(File file, Consumer<FileConfig> consumer) {
+        return Config.of(file.getPath(), consumer);
+    }
+
 
     private static final String SEPARATOR = ": ";
     private static final String LIST_SPLITTER = "  - ";
 
-    /*     CONFIG METHODS     */
-
-    public static FileConfig newConfig(String file) {
-        return newConfig(file, null);
-    }
-
-    public static FileConfig newConfig(String file, Consumer<FileConfig> consumer) {
-        return new FileConfig(file, consumer);
-    }
-
-    public static FileConfig newConfig(File file) {
-        return newConfig(file.getPath(), null);
-    }
-
-    public static FileConfig newConfig(File file, Consumer<FileConfig> consumer) {
-        return newConfig(file.getPath(), consumer);
-    }
-
-    public static FileConfig fromResource(String resource) {
-        return fromResource(resource, null);
-    }
-
-    public static FileConfig fromResource(String resource, Consumer<FileConfig> consumer) {
-        File file = FileUtils.exportResource(resource);
-        return file.exists() ? new FileConfig(resource, consumer) : null;
-    }
-
-    /*     CLASS CONSTRUCTOR     */
-
     private final String filePath;
 
-    private FileConfig(String filePath, Consumer<FileConfig> consumer) {
+    protected FileConfig(String filePath, Consumer<FileConfig> consumer) {
         this.filePath = filePath;
         File file = new File(filePath);
         if (!file.exists()) {
@@ -61,6 +53,10 @@ public class FileConfig {
             consumer.accept(this);
     }
 
+    public <T> void set(String key, T value) {
+        set(key, value, null);
+    }
+
     public <T> void set(String key, T value, String comment) {
         try {
             String valueSet = value.toString();
@@ -69,7 +65,7 @@ public class FileConfig {
             String keyValueString = key + SEPARATOR + valueSet;
             List<String> contentList = new ArrayList<>();
             String lastLine = null;
-            for (String currentLine : FileUtils.readFileContentBuffer(filePath)) {
+            for (String currentLine : ReadUtilities.readBuffer(filePath)) {
                 if (currentLine.startsWith(key + SEPARATOR) && !currentLine.equals(keyValueString)) {
                     currentLine = keyValueString;
                     if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
@@ -98,7 +94,7 @@ public class FileConfig {
             key = key + SEPARATOR;
             List<String> contentList = new ArrayList<>();
             String lastContent = null;
-            for (String contentString : FileUtils.readFileContentBuffer(filePath)) {
+            for (String contentString : ReadUtilities.readBuffer(filePath)) {
                 if (!contentString.startsWith(key)) {
                     contentList.add(contentString);
                 }
@@ -114,7 +110,7 @@ public class FileConfig {
     public <T> List<T> getList(String key) {
         List<T> arrayList = new ArrayList<>();
         boolean readList = false;
-        for (String contentLines : FileUtils.readFileContentBuffer(filePath)) {
+        for (String contentLines : ReadUtilities.readBuffer(filePath)) {
             if (readList && contentLines.startsWith(LIST_SPLITTER)) {
                 String value = contentLines.replaceFirst(LIST_SPLITTER, "");
                 arrayList.add((T) parseType(value));
@@ -127,12 +123,16 @@ public class FileConfig {
         return arrayList;
     }
 
+    public <T extends List> void setList(String key, T value) {
+        setList(key, value, null);
+    }
+
     public <T extends List> void setList(String key, T value, String comment) {
         try {
             List<String> contentList = new ArrayList<>();
             boolean foundListKey = false;
             String lastLine = null;
-            for (String currentLine : FileUtils.readFileContentBuffer(filePath)) {
+            for (String currentLine : ReadUtilities.readBuffer(filePath)) {
                 // No current list
                 if (!foundListKey) {
                     // Is this the list key?
@@ -174,7 +174,7 @@ public class FileConfig {
 
     public Map<String, Object> allKeyValues() {
         Map<String, Object> valueMap = new HashMap<>();
-        for (String fileContent : FileUtils.readFileContentBuffer(filePath)) {
+        for (String fileContent : ReadUtilities.readBuffer(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
             if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
@@ -187,7 +187,7 @@ public class FileConfig {
 
     public List<String> allKeys() {
         List<String> keyList = new ArrayList<>();
-        for (String fileContent : FileUtils.readFileContentBuffer(filePath)) {
+        for (String fileContent : ReadUtilities.readBuffer(filePath)) {
             String[] contentSplit = fileContent.split(SEPARATOR);
             if (contentSplit.length >= 2) {
                 String key = contentSplit[0];
@@ -199,7 +199,7 @@ public class FileConfig {
 
     public <T> T get(String key) {
         key = key + SEPARATOR;
-        for (String contentLines : FileUtils.readFileContentBuffer(filePath)) {
+        for (String contentLines : ReadUtilities.readBuffer(filePath)) {
             if (contentLines.startsWith(key)) {
                 String value = contentLines.replaceFirst(key, "");
                 if (value.equalsIgnoreCase(""))
@@ -231,22 +231,30 @@ public class FileConfig {
         return (T) value;
     }
 
-    public <T extends List> void setList(String key, T value) {
-        setList(key, value, null);
+    public int getLineCount() {
+        return ReadUtilities.readBuffer(filePath).size();
     }
 
-    public <T> void set(String key, T value) {
-        set(key, value, null);
+    public String getFileName() {
+        return getFile().getName();
+    }
+
+    public File getFile() {
+        return new File(filePath);
+    }
+
+    public void delete() {
+        FileUtilities.deleteRecursively(filePath);
     }
 
     public boolean containsKey(String key) {
         String finalKey = key + SEPARATOR;
-        return FileUtils.readFileContentBuffer(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
+        return ReadUtilities.readBuffer(filePath).parallelStream().anyMatch(line -> line.startsWith(finalKey));
     }
 
     public boolean containsValue(String value) {
         String finalValue = SEPARATOR + value;
-        return FileUtils.readFileContentBuffer(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
+        return ReadUtilities.readBuffer(filePath).parallelStream().anyMatch(line -> line.endsWith(finalValue));
     }
 
     public <T> void init(String key, T value, String comment) {
@@ -256,22 +264,6 @@ public class FileConfig {
 
     public <T> void init(String key, T value) {
         init(key, value, null);
-    }
-
-    public int getLineCount() {
-        return FileUtils.readFileContentBuffer(filePath).size();
-    }
-
-    public String getFileName() {
-        return getFile().getName();
-    }
-
-    public File getFile() {
-        return new File(this.filePath);
-    }
-
-    public void delete() {
-        FileUtils.delete(this.filePath);
     }
 
     public String getString(String key) {

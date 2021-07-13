@@ -15,7 +15,7 @@ public class ConfigTest {
 
     @BeforeClass
     public static void before() {
-        config = FileConfig.newConfig("test.cfg", dConfig -> {
+        config = Config.of("test.cfg", dConfig -> {
             dConfig.init("default", 2);
             dConfig.init("adv", "dzndwkplö");
             dConfig.init("Gotten", "sh");
@@ -105,7 +105,7 @@ public class ConfigTest {
     @Test
     public void testI() {
         System.out.println("Test I Resources");
-        FileConfig cfg = FileConfig.fromResource("test_rsc.cfg");
+        FileConfig cfg = Config.ofResource("test_rsc.cfg");
         cfg.allKeys().forEach(key -> System.out.println(cfg.get(key) + ""));
     }
 
