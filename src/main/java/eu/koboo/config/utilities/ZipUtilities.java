@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -22,6 +23,10 @@ public class ZipUtilities {
         zipFile(DEFAULT_BUFFER_SIZE, zipFileName, filesToZip);
     }
 
+    public static void zipFile(String zipFileName, Consumer<File> consumer, File... filesToZip) {
+        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, consumer, filesToZip);
+    }
+
     public static void zipFile(int bufferSize, String zipFileName, String... filesToZip) {
         List<File> fileList = new ArrayList<>();
         for(String filePath : filesToZip) {
@@ -31,9 +36,16 @@ public class ZipUtilities {
     }
 
     public static void zipFile(int bufferSize, String zipFileName, File... filesToZip) {
+        zipFile(bufferSize, zipFileName, null, filesToZip);
+    }
+
+    public static void zipFile(int bufferSize, String zipFileName, Consumer<File> consumer, File... filesToZip) {
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFileName))) {
             for (File file : filesToZip) {
                 zipSpecificFile(bufferSize, file, file.getName(), zos);
+                if(consumer != null) {
+                    consumer.accept(file);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,7 +91,6 @@ public class ZipUtilities {
     private static void zipSpecificFile(int bufferSize, File fileToZip, String zipFileName, ZipOutputStream zos) throws IOException {
         if (fileToZip.isHidden())
             return;
-        System.out.println("Zip: " + fileToZip.getPath());
         if (fileToZip.isDirectory()) {
             String fileName = fileToZip.getPath();
             String entryName = fileName.endsWith("/") ? fileName : fileName + "/";
