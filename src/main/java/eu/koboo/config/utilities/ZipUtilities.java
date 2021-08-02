@@ -16,36 +16,29 @@ public class ZipUtilities {
     private static final int DEFAULT_BUFFER_SIZE = 8192;
 
     public static void zipFile(String zipFileName, String... filesToZip) {
-        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, filesToZip);
+        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, null, null, filesToZip);
     }
 
     public static void zipFile(String zipFileName, File... filesToZip) {
-        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, filesToZip);
+        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, null, null, filesToZip);
     }
 
-    public static void zipFile(String zipFileName, Consumer<File> consumer, File... filesToZip) {
-        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, consumer, filesToZip);
+    public static void zipFile(String zipFileName, Consumer<File> beforeZip, Consumer<File> afterZip, File... filesToZip) {
+        zipFile(DEFAULT_BUFFER_SIZE, zipFileName, beforeZip, afterZip, filesToZip);
     }
 
-    public static void zipFile(int bufferSize, String zipFileName, String... filesToZip) {
+    public static void zipFile(int bufferSize, String zipFileName, Consumer<File> beforeZip, Consumer<File> afterZip, String... filesToZip) {
         List<File> fileList = new ArrayList<>();
         for(String filePath : filesToZip) {
             fileList.add(new File(filePath));
         }
-        zipFile(bufferSize, zipFileName, fileList.toArray(new File[0]));
+        zipFile(bufferSize, zipFileName, beforeZip, afterZip, fileList.toArray(new File[0]));
     }
 
-    public static void zipFile(int bufferSize, String zipFileName, File... filesToZip) {
-        zipFile(bufferSize, zipFileName, null, filesToZip);
-    }
-
-    public static void zipFile(int bufferSize, String zipFileName, Consumer<File> consumer, File... filesToZip) {
+    public static void zipFile(int bufferSize, String zipFileName, Consumer<File> beforeZip, Consumer<File> afterZip, File... filesToZip) {
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFileName))) {
             for (File file : filesToZip) {
-                zipSpecificFile(bufferSize, file, file.getName(), zos);
-                if(consumer != null) {
-                    consumer.accept(file);
-                }
+                zipSpecificFile(bufferSize, file, file.getName(), beforeZip, afterZip, zos);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,7 +81,7 @@ public class ZipUtilities {
         }
     }
 
-    private static void zipSpecificFile(int bufferSize, File fileToZip, String zipFileName, ZipOutputStream zos) throws IOException {
+    private static void zipSpecificFile(int bufferSize, File fileToZip, String zipFileName, Consumer<File> beforeZip, Consumer<File> afterZip, ZipOutputStream zos) throws IOException {
         if (fileToZip.isHidden())
             return;
         if (fileToZip.isDirectory()) {
@@ -100,10 +93,12 @@ public class ZipUtilities {
             if (children == null)
                 return;
             for (File childFile : children) {
-                zipSpecificFile(bufferSize, childFile, zipFileName + "/" + childFile.getName(), zos);
+                zipSpecificFile(bufferSize, childFile, zipFileName + "/" + childFile.getName(), beforeZip, afterZip, zos);
             }
             return;
         }
+        if(beforeZip != null)
+            beforeZip.accept(fileToZip);
         try (FileInputStream fis = new FileInputStream(fileToZip)) {
             ZipEntry zipEntry = new ZipEntry(zipFileName);
             zos.putNextEntry(zipEntry);
@@ -114,6 +109,9 @@ public class ZipUtilities {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        if(afterZip != null) {
+            afterZip.accept(fileToZip);
         }
     }
 
