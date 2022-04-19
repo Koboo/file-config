@@ -1,13 +1,15 @@
+# **//FileConfig**
+
 ## Create new `FileConfig`
 ````java
-FileConfig fileConfig = FileConfig.newConfig("my_config.cfg");
+FileConfig fileConfig = Config.of("my_config.cfg");
         
-FileConfig fileConfig = FileConfig.newConfig("my_config.cfg", (FileConfig) onInit -> {
+FileConfig fileConfig = Config.of("my_config.cfg", (FileConfig) onInit -> {
     onInit.init("key", "value");
 }); 
         
 File file = new File("my_config.cfg");
-FileConfig fileConfig = FileConfig.newConfig(file, (FileConfig) onInit -> {
+FileConfig fileConfig = Config.of(file, (FileConfig) onInit -> {
     onInit.init("key", "value");
 }); 
 ````
