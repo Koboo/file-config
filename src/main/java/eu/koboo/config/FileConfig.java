@@ -10,27 +10,6 @@ import java.util.function.Consumer;
 @SuppressWarnings({"all"})
 public class FileConfig {
 
-    @Deprecated
-    public static FileConfig newConfig(String path) {
-        return Config.of(path);
-    }
-
-    @Deprecated
-    public static FileConfig newConfig(String path, Consumer<FileConfig> consumer) {
-        return Config.of(path, consumer);
-    }
-
-    @Deprecated
-    public static FileConfig newConfig(File file) {
-        return Config.of(file.getPath(), null);
-    }
-
-    @Deprecated
-    public static FileConfig newConfig(File file, Consumer<FileConfig> consumer) {
-        return Config.of(file.getPath(), consumer);
-    }
-
-
     private static final String SEPARATOR = ": ";
     private static final String LIST_SPLITTER = "  - ";
 
@@ -60,25 +39,29 @@ public class FileConfig {
     public <T> void set(String key, T value, String comment) {
         try {
             String valueSet = value.toString();
-            if (value instanceof byte[])
+            if (value instanceof byte[]) {
                 valueSet = new String((byte[]) value);
+            }
             String keyValueString = key + SEPARATOR + valueSet;
             List<String> contentList = new ArrayList<>();
             String lastLine = null;
             for (String currentLine : ReadUtilities.readBuffer(filePath)) {
                 if (currentLine.startsWith(key + SEPARATOR) && !currentLine.equals(keyValueString)) {
                     currentLine = keyValueString;
-                    if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
+                    if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment)) {
                         contentList.remove(lastLine);
-                    if (comment != null)
+                    }
+                    if (comment != null) {
                         contentList.add("#" + comment);
+                    }
                 }
                 contentList.add(currentLine);
                 lastLine = currentLine;
             }
             if (!contentList.contains(keyValueString)) {
-                if (comment != null)
+                if (comment != null) {
                     contentList.add("#" + comment);
+                }
                 contentList.add(keyValueString);
             }
             PrintWriter writer = new PrintWriter(filePath, "UTF-8");
@@ -117,8 +100,9 @@ public class FileConfig {
             } else {
                 readList = false;
             }
-            if (contentLines.startsWith(key + SEPARATOR))
+            if (contentLines.startsWith(key + SEPARATOR)) {
                 readList = true;
+            }
         }
         return arrayList;
     }
@@ -138,8 +122,9 @@ public class FileConfig {
                     // Is this the list key?
                     if (currentLine.equals(key + SEPARATOR)) {
                         foundListKey = true;
-                        if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment))
+                        if (lastLine != null && lastLine.startsWith("#") && comment != null && !lastLine.equals(comment)) {
                             contentList.remove(lastLine);
+                        }
                     } else {
                         contentList.add(currentLine);
                     }
@@ -155,15 +140,18 @@ public class FileConfig {
             contentList.forEach(writer::println);
             List list = getList(key);
             for (Object object : value) {
-                if (!list.contains(object))
+                if (!list.contains(object)) {
                     list.add(object);
+                }
             }
             for (Object object : list) {
-                if (!value.contains(object))
+                if (!value.contains(object)) {
                     list.remove(object);
+                }
             }
-            if (comment != null)
+            if (comment != null) {
                 writer.println("#" + comment);
+            }
             writer.println(key + SEPARATOR);
             list.forEach(line -> writer.println(LIST_SPLITTER + line));
             writer.close();
@@ -202,8 +190,9 @@ public class FileConfig {
         for (String contentLines : ReadUtilities.readBuffer(filePath)) {
             if (contentLines.startsWith(key)) {
                 String value = contentLines.replaceFirst(key, "");
-                if (value.equalsIgnoreCase(""))
+                if (value.equalsIgnoreCase("")) {
                     return (T) getList(key);
+                }
                 return parseType(value);
             }
         }
@@ -211,20 +200,24 @@ public class FileConfig {
     }
 
     private <T> T parseType(String value) {
-        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"))
+        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
             return (T) Boolean.valueOf(value);
+        }
         if (value.matches("-?\\d+(\\.\\d+)?")) {
             if (value.contains(".")) {
                 double valueDouble = Double.valueOf(value);
-                if (valueDouble <= Float.MAX_VALUE && valueDouble >= Float.MIN_VALUE)
+                if (valueDouble <= Float.MAX_VALUE && valueDouble >= Float.MIN_VALUE) {
                     return (T) Float.valueOf(value);
+                }
                 return (T) Double.valueOf(value);
             } else {
                 long valueLong = Long.valueOf(value);
-                if (valueLong <= Short.MAX_VALUE && valueLong >= Short.MIN_VALUE)
+                if (valueLong <= Short.MAX_VALUE && valueLong >= Short.MIN_VALUE) {
                     return (T) Short.valueOf(value);
-                if (valueLong <= Integer.MAX_VALUE && valueLong >= Integer.MIN_VALUE)
+                }
+                if (valueLong <= Integer.MAX_VALUE && valueLong >= Integer.MIN_VALUE) {
                     return (T) Integer.valueOf(value);
+                }
                 return (T) Long.valueOf(value);
             }
         }
@@ -258,8 +251,9 @@ public class FileConfig {
     }
 
     public <T> void init(String key, T value, String comment) {
-        if (!containsKey(key))
+        if (!containsKey(key)) {
             set(key, value, comment);
+        }
     }
 
     public <T> void init(String key, T value) {
@@ -378,4 +372,3 @@ public class FileConfig {
         return defaultB;
     }
 }
-
